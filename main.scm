@@ -98,7 +98,7 @@
 
 (define (?even n)
 	(= (remainder n 2) 0))
-	
+
 ; iterative version 1.16
 (define (fast-expt b n)
 	(expt-iter b n 1))
@@ -177,11 +177,11 @@
 ; The Fermat test
 ; If n is a prime number and a is any positivie integer less than n,
 ; 	then a^n is congruent to a%n(a modulo n)
-(define (expmod base exp m)
-	(cond ((= exp 0) 1)
-				((even? exp)
-					(remainder (square (expmod base (/ exp 2) m)) m))
-				(else (remainder (* base (expmod base (- exp 1) m)) m))))
+(define (expmod base n m)
+	(cond ((= n 0) 1)
+				((even? n)
+					(remainder (square (expmod base (/ n 2) m)) m))
+				(else (remainder (* base (expmod base (- n 1) m)) m))))
 
 (define (fermat-test n)
 	(define (try-it a)
@@ -228,21 +228,21 @@
 ; Ex 1.25 
 ; The difference is that the first method uses remider after square so we will compute
 ; shorter numbers. Method 2 computers larger numbers...
-(define (expmod base exp m)
-	(cond ((= exp 0) 1)
-				((even? exp)
-					(remainder (square (expmod base (/ exp 2) m)) m))
-				(else (remainder (* base (expmod base (- exp 1) m)) m))))
+(define (expmod base n m)
+	(cond ((= n 0) 1)
+				((even? n)
+					(remainder (square (expmod base (/ n 2) m)) m))
+				(else (remainder (* base (expmod base (- n 1) m)) m))))
 
-(define (expmod base exp m)
-	(remainder (fast-expt base exp) m))
+(define (expmod base n m)
+	(remainder (fast-expt base n) m))
 
 ; Ex 1.26 - this procedure uses O(n) bacause we need to computer two expmod at each iteration
 ; 	instead of one.
-(define (expmod base exp m)
-	(cond ((= exp 0) 1)
-				((even? exp)
-					(remainder (* (expmod base (/ exp 2) m) (expmod base (/ exp 2) m)) m))
+(define (expmod base n m)
+	(cond ((= n 0) 1)
+				((even? n)
+					(remainder (* (expmod base (/ n 2) m) (expmod base (/ n 2) m)) m))
 				(else (remainder (* base (expmod base (-exp 1) m)) m))))
 
 ; 1.3 subchapter
@@ -294,16 +294,88 @@
 			(yk k)))
 	(* (/ h 3) (sum simpson-term 0 inc n)))
 
+; Sum function recursive version 
+(define (sum term a next b) ; term --> function that applies to a next --> step of the sum
+	(if (> a b)
+		0
+		(+ (term a) 
+			 (sum term (next a) next b))))
 
+; Ex 1.30 - Sum function iterative version
+(define (iter-sum term a next b)
+	(define (iter a result)
+		(if (> a b)
+			result	
+			(iter (next a) (+ result (term a)))))
+	(iter a 0))
 
+; Test for iter sum
+(define (pi-sum a b)
+	(define (pi-term x)
+		(/ 1.0 (* x (+ x 2))))
+	(define (pi-next x)
+		(+ x 4))
+	(iter-sum pi-term a pi-next b))
 
+; Procedures Using Lambda
+(define (pi-sum a b)
+	(sum (lambda (x) (/ 1.0 (* x (+ x 2))))	
+		 a
+		 (lambda (x) (+ x 4))
+		 b))
 
+(define (plus4 x) (+ x 4))
+; Equiv to 
+(define plus (lambda (x) (+ x 4)))
 
+; To include local variables we use 'let'
+; For f(x, y) = x*a^2 + y*b + a*b, with a = 1 + xy and b = 1 - y -->
 
+; Classical approach
+(define (f x y)
+	(define (f-helper a b)
+		(+ (* x (square a)) (* y b) (* a b)))
+	(f-helper (+ 1 (* x y)) (- 1 y)))
 
+;Lambda approach
+(define (f x y)
+	((lambda (a b)
+		(+ (* x (square a)) (* y b) (* a b))) ; Lambda function 
+	(+ 1 (* x y)) (- 1 y))) ; Lambda values for a and b
 
+; Let approach
+(define (f x y)
+	(let ((a (+ 1 (* x y))) ; a and b have those values in
+		  (b (- 1 y)))
+		  (+ (* x (square a)) (* y b) (* a b)))) ; this expression
 
+; Ex 1.34
+(define (f g)
+	(g 2))
+; for (f f) --> (f 2) --> (2 2)...
 
+; Chapter 2
+; Pair is constructed with the command "cons" ex: (define x (cons 1 2))
+; car --> prints the first pair element ex: (car x) --> 1 
+; cdr --> prints the last  pair element ex: (cdr x) --> 2  
+
+; Represeting Rational Numbers
+(define (make-rat n d) 
+	(let ((g (gcd n d)))
+		(cons (/ n g) (/ d g))))
+(define (numer x) (car x))
+(define (denom x) (cdr x))
+; Display Result
+(define (print-rat x)
+	(newline)
+	(display (numer x))
+	(display "/")
+	(display (denom x)))
+	
+; Ex 2.1 make-rat with negative numbers
+(define (make-rat n d)
+		(let ((g ((if (< d 0) - +) (abs (gcd (n d))))))
+			(cons (/ n g) (/ d g))))
 
 
 
