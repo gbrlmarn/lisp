@@ -83,7 +83,7 @@
   (helper items nil))
 (reverse squares)
 
-;; 2.20
+;; ex 2.20
 (define (same-parity x . y)
   (define (helper a rev)
     (cond ((null? a) rev)
@@ -123,6 +123,7 @@
   (map square items))
 (square-list (list 1 2 3 4 5))
 
+;; ex 2.21
 ;; square list 
 ;; cons version
 (define (square-list items)
@@ -134,3 +135,38 @@
   (map (lambda (x) (square x))
        items))
 (square-list (list 1 2 3 4 5))
+
+;; ex 2.22
+;; iter square-list
+(define test-list (list 1 2 3 4 5))
+(define nil '())
+;; wrong version
+(define (square-list items)
+  (define (iter things answer)
+    (if (null? things) answer
+      (iter (cdr things)
+            (cons (square (car things)) answer))))
+  (iter items nil))
+;; working version
+(define (square-list items)
+  (define (iter things answer)
+    (if (null? things) answer
+      (iter (cdr things)
+            (append  answer (list (square (car things)))))))
+  (iter items nil))
+(square-list test-list)
+;; testing
+(append (list 1) '())
+(cons (cons '(1) '(2)) '(3))
+(append (append '(1) '(2)) '(3))
+
+;; ex 2.23
+(display 3)
+(for-each (lambda (x) (newline) (display x))
+          (list 57 321 88))
+;; for-each implementation
+(define (for-each-new expr items)
+  (if (null? items) #t
+    (and (expr (car items)) (for-each-new expr (cdr items)))))
+(for-each-new (lambda (x) (newline) (display x))
+              (list 1 2 3 4))
