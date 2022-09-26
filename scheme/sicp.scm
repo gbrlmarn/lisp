@@ -170,3 +170,176 @@
     (and (expr (car items)) (for-each-new expr (cdr items)))))
 (for-each-new (lambda (x) (newline) (display x))
               (list 1 2 3 4))
+
+;; Hierarchical structures
+(cons (list 1 2) (list 3 4))
+(define x (cons (list 1 2) (list 3 4)))
+(list x x)
+(length (list x x))
+
+(define (count-leaves items)
+  (cond ((null? items) 0)
+        ((not (pair? items)) 1)
+        (else (+ (count-leaves (car items))
+                 (count-leaves (cdr items))))))
+
+(count-leaves x)
+(count-leaves (list x x))
+
+;; ex 2.24
+(list 1 (list 2 (list 3 4)))
+;; => (1 (2 (3 4)))
+
+;; ex 2.25
+;; (1 3 (5 7) 9) =>
+(list 1 3 (list 5 7) 9)
+;; ((7)) =>
+(list (list 7))
+;; (1 (2 (3 (4 (5 (6 7)))))) =>
+(list 1 (list 2 (list 3 (list 4 (list 5 (list 6 7))))))
+
+;; ex 2.26
+(define x (list 1 2 3))
+(define y (list 4 5 6))
+(append x y) ;; => (1 2 3 4 5 6)
+(cons x y) ;; => ((1 2 3) 4 5 6)
+(list x y) ;; => ((1 2 3) (4 5 6))
+
+;; ex 2.27
+(define x (list (list 1 2) (list 3 4)))
+
+;; some tests 
+(define (reverse items)
+  (define (helper a rev)
+    (if (= (length a) 1) (append a rev)
+      (helper (cdr a) (cons (car a) rev))))
+  (helper items nil))
+
+(define (deep-reverse items)
+  (define (helper a res)
+    (cond ((null? a) res)
+          ((not (pair? (car a)))
+           (helper (cdr a) (cons (car a) res)))
+          (else (deep-reverse 
+                  (cdr a)
+                  (cons (deep-reverse (car a)) res)))))
+  (helper items nil))
+
+(define (reverse items)
+  (define (helper a res)
+    (if (null? a) res
+      (helper (cdr a) (cons (car a) res))))
+  (helper items nil))
+
+;; solution
+(define (deep-reverse items)
+  (define (helper a res)
+    (cond ((null? a) res)
+          ((not (pair? (car a)))
+           (helper (cdr a) (cons (car a) res)))
+          (else 
+            (helper (cdr a) (cons (deep-reverse (car a)) res)))))
+  (helper items nil))
+;; shorter solution
+(define (deep-reverse items)
+  (cond ((null? items) nil)
+        ((not (pair? items)) items)
+        (else (append (deep-reverse (cdr items))
+                      (list (deep-reverse (car items)))))))
+
+(reverse x)
+(deep-reverse x)
+
+;; 2.28
+(define x (list (list 1 2) (list 3 4)))
+(display x)
+
+;; cond variant
+(define (fringe items)
+  (cond ((null? items) nil)
+        ((not (pair? (car items)))
+         (cons (car items) (fringe (cdr items))))
+        (else
+          (append (fringe (car items))
+                  (fringe (cdr items))))))
+;; let variant 
+(define (fringe items)
+  (if (null? items)
+    nil
+    (let ((first (car items)))
+      (if (not (pair? first))
+        (cons first (fringe (cdr items)))
+        (append (fringe first) (fringe (cdr items)))))))
+(fringe x)
+
+;; 2.29
+;; using list
+(define (make-mobile left right)
+  (list left right))
+(define (make-branch length structure)
+  (list length structure))
+(define (left-branch mobile)
+  (car mobile))
+(define (right-branch mobile)
+  (cdr mobile))
+(define (branch-length branch)
+  (car branch))
+(define (branch-structure branch)
+  (cdr branch))
+;; incomplete
+
+;; Mapping over trees
+;; without map
+(define (scale-tree tree factor)
+  (cond ((null? tree) nil)
+        ((not (pair? tree)) (* tree factor))
+        (else (cons (scale-tree (car tree) factor)
+                    (scale-tree (cdr tree) factor)))))
+(define x (list 1 (list 2 (list 3 4) 5) (list 6 7)))
+(display x)
+(scale-tree x 10)
+;; with map
+(define (scale-tree tree factor)
+  (map (lambda (sub-tree)
+         (if (pair? sub-tree)
+           (scale-tree sub-tree factor)
+           (* sub-tree factor)))
+       tree))
+(scale-tree x 10)
+
+;; 2.30
+;; without map
+(define (square-tree tree)
+  (cond ((null? tree) nil)
+        ((not (pair? tree)) (square tree))
+        (else
+          (cons (square-tree (car tree))
+                (square-tree (cdr tree))))))
+(square-tree x)
+;; with map
+(define (square-tree tree)
+  (map (lambda (sub-tree)
+         (if (pair? sub-tree)
+           (square-tree sub-tree)
+           (square sub-tree)))
+       tree))
+(square-tree x)
+
+;; 2.31
+(define (tree-map f tree)
+  (map (lambda (sub-tree)
+         (if (pair? sub-tree)
+           (tree-map f sub-tree)
+           (f sub-tree)))
+       tree))
+(tree-map cube x)
+
+;; 2.32
+(define x (list 1 2 3))
+(define (subsets items)
+  (if (null? items)
+    (list nil)
+    (let ((rest (subsets (cdr items))))
+      (append rest (map (lambda (x) (cons (car items) x)) rest)))))
+(subsets x)
+
