@@ -456,3 +456,71 @@
               items))
 (map square (list 1 2 3 4))
 (my-map square (list 1 2 3 4))
+
+;; ex 2.34
+(define (horner-eval x coefficient-sequence)
+  (accumulator (lambda (this-coeff higher-term) 
+                 (+ this-coeff (* x higher-term)))
+                0
+                coefficient-sequence))
+(horner-eval 2 (list 1 3 0 5 0 1))
+;; 1 + 3 * 2 + 2 * 2^2 = 1 + 6 + 2 * 4 = 1 + 6 + 8 = 15
+(horner-eval 2 (list 1 3 2))
+
+;; ex 2.35
+(define (count-leaves tree)
+  (accumulator +
+               0
+               (map (lambda (node)
+                      (if (pair? node) 
+                        (count-leaves node)
+                        1))
+                    tree)))
+(count-leaves (list 1 (list 2 (list 3 4) 5)))
+
+;; ex 2.36
+(define (accumulate op init seq)
+  (if (null? seq)
+    init
+    (op (car seq) (accumulate op init (cdr seq)))))
+(accumulate + 0 (list 1 2 3))
+
+(define (accumulate-n op init seqs)
+  (if (null? (car seqs))
+    nil
+    (cons 
+      (accumulate op init (map (lambda (seq) (car seq)) seqs))
+      (accumulate-n op init (map (lambda (seq) (cdr seq)) seqs)))))
+
+(define x (list (list 1 2 3) 
+                (list 4 5 6) 
+                (list 7 8 9)
+                (list 10 11 12)))
+(car x)
+(display x)
+(accumulate-n + 0 x)
+
+(map * (list 1 2 3) (list 1 2 3))
+
+;; ex 2.37
+(define vec (list 1 2 3))
+(define mat (list (list 1 2 3) (list 4 5 6) (list 7 8 9)))
+(define (dot-product v w)
+  (accumulate + 0 (map * v w)))
+(dot-product vec vec)
+
+(define (matrix-*-vector m v)
+  (map (lambda (mv)
+         (dot-product mv v)) m))
+(matrix-*-vector mat vec)
+
+(define (transpose mat)
+  (accumulate-n cons nil mat))
+(transpose mat)
+
+(define (matrix-*-matrix m n)
+  (let ((cols (transpose n)))
+    (map (lambda (mv)
+           (matrix-*-vector cols mv))
+         m)))
+(matrix-*-matrix mat mat)
