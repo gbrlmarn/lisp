@@ -382,6 +382,7 @@
 (accumulate * 1 (list 1 2 3 4 5))
 
 ;; enumerator
+(define nil '())
 (define (enumerate-interval low high)
   (if (> low high)
     nil
@@ -569,3 +570,46 @@
 (reverse-right (list 1 2 3))
 (reverse-left (list 1 2 3))
 
+;; Nested mappings >>> nested loops
+;; 1 <= j < i <= n with i + j is prime
+;; generate pairs (i j (+ i j))
+(define nil '())
+(define (flatmap proc seq)
+  (accumulate append nil (map proc seq)))
+
+(define (prime? x)
+  (= x (smallest-divisor x)))
+(define (smallest-divisor x)
+  (find-divisor x 2))
+(define (find-divisor x test-divisor)
+  (cond ((> (square test-divisor) x) x)
+	((divides? test-divisor x) test-divisor)
+	(else (find-divisor x (+ test-divisor 1)))))
+(define (divides? a b)
+  (= (remainder b a) 0))
+(define (prime-sum? pair)
+  (prime? (+ (car pair) (cadr pair))))
+(define (make-pair-sum pair)
+  (list (car pair) (cadr pair) (+ (car pair) (cadr pair))))
+(define (enumerate-interval low high)
+  (if (> low high)
+    nil
+    (cons low (enumerate-interval (+ low 1) high))))
+(define (accumulate op initial sequence)
+  (if (null? sequence)
+    initial
+    (op (car sequence) 
+        (accumulate op initial (cdr sequence)))))
+(define (prime-sum-pairs n)
+  (map make-pair-sum
+       (filter prime-sum?
+               (flatmap
+                 (lambda (i)
+                   (map (lambda (j) (list i j))
+                        (enumerate-interval 1 (- i 1))))
+                 (enumerate-interval 1 n)))))
+(prime-sum-pairs 6)
+
+;; enumerate all ordered pairs less than equal to n
+;; filter those pairs whose sum is prime
+;; for each pair that pass the filter produce a triple (i,j,i+j)
