@@ -613,15 +613,4 @@
 ;; enumerate all ordered pairs less than equal to n
 ;; filter those pairs whose sum is prime
 ;; for each pair that pass the filter produce a triple (i,j,i+j)
-(define nil '())
-(define (permutations s)
-  (if (null? s)
-    (list nil)
-    (flatmap (lambda (x)
-               (map (lambda (p) (cons x p))
-                    (permutations (remove x s))))
-             s)))
-(define (remove item sequence)
-  (filter (lambda (x) (not (= x item)))
-          sequence))
-(permutations (list 1 2 3))
+
