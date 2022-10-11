@@ -614,3 +614,63 @@
 ;; filter those pairs whose sum is prime
 ;; for each pair that pass the filter produce a triple (i,j,i+j)
 
+;; 2.40
+(define (unique-pairs n)
+  (flatmap
+   (lambda (i)
+     (map (lambda (j) (list i j))
+	  (enumerate-interval 1 (- i 1))))
+   (enumerate-interval 1 n)))
+(define (enumerate-interval low high)
+  (if (> low high) nil
+      (cons low (enumerate-interval (+ low 1) high))))
+(define nil '())
+(define (flatmap proc seq)
+  (if (null? seq) nil
+      (accumulator append nil (map proc seq))))
+(define (accumulator proc initial seq)
+  (if (null? seq)
+      initial
+      (accumulator proc
+		   (proc initial (car seq))
+		   (cdr seq))))
+(accumulator + 0 (list 1 2 3 4))
+(unique-pairs 5)
+
+(define (prime-sum-pairs n)
+  (map  make-sum-pair
+	(filter prime-sum? (unique-pairs n))))
+
+(define (prime-sum? pair)
+  (prime? (+ (car pair) (cadr pair))))
+(define (prime? n)
+  (= (smallest-div n) n))
+(define (smallest-div n)
+  (find-div n 2))
+(define (find-div n test-div)
+  (cond ((> (square test-div) n) n)
+	((= (remainder n test-div) 0) test-div)
+	(else (find-div n (+ test-div 1)))))
+(define (make-sum-pair pair)
+  (list (car pair) (cadr pair) (+ (car pair) (cadr pair))))
+	 
+(prime-sum-pairs 6)
+
+(define (triples-of-sum n s)
+  (filter (lambda (list) (= (accumulator + 0 list) s))
+	  (flatmap
+	   (lambda (i)
+	     (flatmap
+	      (lambda (j)
+		(map (lambda (k) (list i j k))
+		     (enumerate-interval 1 (- j 1))))
+	      (enumerate-interval 1 (- i 1))))
+	   (enumerate-interval 1 n))))
+(define (filter proq seq)
+  (cond ((null? seq) nil)
+	((proq (car seq)) (cons (car seq) (filter proq (cdr seq))))
+	(else (filter proq (cdr seq)))))
+(filter (lambda (x) (> x 2)) (list 1 2 3 4 5 6))
+	 
+(triples-of-sum 20 30)
+
