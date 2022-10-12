@@ -656,6 +656,7 @@
 	 
 (prime-sum-pairs 6)
 
+;; 2.41
 (define (triples-of-sum n s)
   (filter (lambda (list) (= (accumulator + 0 list) s))
 	  (flatmap
