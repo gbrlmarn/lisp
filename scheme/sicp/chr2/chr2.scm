@@ -675,3 +675,38 @@
 	 
 (triples-of-sum 20 30)
 
+;; 2.42
+(define (queens board-size)
+  (define (queen-cols k)
+    (if (= k 0)
+	(list empty-board)
+	(filter
+	 (lambda (positions) (safe? positions))
+	 (flatmap
+	  (lambda (rest-of-queens)
+	    (map (lambda (new-row)
+		   (adjoin-position new-row k rest-of-queens))
+		 (enumerate-interval 1 board-size)))
+	  (queen-cols (- k 1))))))
+  (queen-cols board-size))
+
+(define nil '())
+(define empty-board nil)
+(define (adjoin-position new-row k rest-of-queens)
+  (cons (list new-row k) rest-of-queens))
+(define (safe? x)
+  (= 0 (accumulator +
+		    0
+		    (map (lambda (y)
+			   (if (check (car x) y) 0 1))
+			 (cdr x)))))
+(define (check a b)
+  (let ((ax (car a))
+	(ay (cadr a))
+	(bx (car b))
+	(by (cadr b)))
+    (and (not (= ax bx)) (not (= ay by))
+	 (not (= (abs (- ax bx)) (abs (- ay by)))))))
+
+(length (queens 8))
+(length (queens 11))
