@@ -710,3 +710,76 @@
 
 (length (queens 8))
 (length (queens 11))
+
+
+;; 2.46
+(define (add-vect v1 v2)
+  (make-vect
+   (+ (xcor-vect v1) (xcor-vect v2))
+   (+ (ycor-vect v1) (ycor-vect v2))))
+(define (sub-vect v1 v2)
+  (make-vect
+   (- (xcor-vect v1) (xcor-vect v2))
+   (- (ycor-vect v1) (ycor-vect v2))))
+(define (scale-vect v s)
+  (make-vect
+   (* (xcor-vect v) s)
+   (* (ycor-vect v) s)))
+(define (make-vect x y)
+  (cons x y))
+(define (xcor-vect v)
+  (car v))
+(define (ycor-vect v)
+  (cdr v))
+;; Testing...
+(define v1 (make-vect 2 3))
+(define v2 (make-vect 3 2))
+(add-vect v1 v2)
+(sub-vect v1 v2)
+(scale-vect v1 2)
+
+(cons 1 (cons 2 (cons 3 '())))
+(list 1 2 3)
+
+;; 2.47
+(define (make-frame origin edge1 edge2)
+  (list origin edge1 edge2))
+(define (frame-origin frame)
+  (car frame))
+(define (frame-edge1 frame)
+  (cadr frame))
+(define (frame-edge2 frame)
+  (caadr frame))
+;; testing
+(define f (make-frame 1 2 3))
+(frame-origin f)
+(frame-edge1 f)
+(frame-edge2 f)
+
+
+(define (make-frame origin edge1 edge2)
+  (cons origin (cons edge1 edge2)))
+(define (frame-origin frame)
+  (car frame))
+(define (frame-edge1 frame)
+  (cadr frame))
+(define (frame-edge2 frame)
+  (cddr frame))
+;; testing 
+(define f (make-frame 1 2 3))
+(display f)
+(frame-origin f)
+(frame-edge1 f)
+(frame-edge2 f)
+
+;; 2.48
+(define (make-segment start-point end-point)
+  (list (make-vect 0 start-point)
+	(make-vect 0 end-point)))
+(define (start-segment seg)
+  (car seg))
+(define (end-segment seg)
+  (cadr seg))
+(define s (make-segment 2 5))
+(start-segment s)
+(end-segment s)
