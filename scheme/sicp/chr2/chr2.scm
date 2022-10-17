@@ -815,4 +815,47 @@
 ;; This prints quote because '(abracadraba) can be writed as
 ;; (quote abracadabra) which results that:
 ;; (car '(quote abracadabra)) equals quote
-	 
+
+;; dc/dx = 0
+;; dx/dx = 1
+;; d(u + v)/dx = du/dx + dv/dx 
+;; d(uv)/dx = u(dv/dx) + v(du/dx)
+
+(define (deriv exp var)
+  (cond ((number? exp) 0)
+	((var? exp)
+	 (if (same-var? exp var) 1 0))
+	((sum? exp)
+	 (make-sum (deriv (addend exp) var)
+		   (deriv (augend exp) var)))
+	((product? exp)
+	 (make-sum
+	  (make-product (multiplier exp)
+			(deriv (multiplicand exp) var))
+	  (make-product (multiplicand exp)
+			(deriv (multiplier exp) var))))
+	(else
+	 (error "unknown expression type -- DERIV" exp))))
+
+(define (var? x)
+  (symbol? x))
+(define (same-var? x y)
+  (and (symbol? x) (symbol y) (eq? x y)))
+(define (sum? exp)
+  (and (pair? exp) (eq? (car exp) '+)))
+(define (addend exp)
+  (cadr exp))
+(define (augend exp)
+  (caddr exp))
+(define (product? exp)
+  (and (pair? exp) (eq? (car exp) '*)))
+(define (multiplier exp)
+  (cadr exp))
+(define (multiplicand exp)
+  (caddr exp))
+(define (make-product x y)
+  (list '* x y))
+	  
+(deriv '(+ x 3) 'x)
+(deriv '(* x y) 'x)
+(deriv '(* (* x y) (+ x 3)) 'x)
