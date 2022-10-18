@@ -832,8 +832,15 @@
 	 (make-sum
 	  (make-product (multiplier exp)
 			(deriv (multiplicand exp) var))
-	  (make-product (multiplicand exp)
-			(deriv (multiplier exp) var))))
+	  (make-product (deriv (multiplier exp) var)
+			(multiplicand exp))))
+	((exponentiation? exp)
+	 (make-product
+	  (make-product
+	   (exponent exp)
+	   (make-exponentiation (base exp)
+				(make-sum (exponent exp) -1)))
+	  (deriv (base exp) var)))
 	(else
 	 (error "unknown expression type -- DERIV" exp))))
 
@@ -841,6 +848,8 @@
   (symbol? x))
 (define (same-var? x y)
   (and (symbol? x) (symbol y) (eq? x y)))
+(define (make-sum x y)
+  (list '+ x y))
 (define (sum? exp)
   (and (pair? exp) (eq? (car exp) '+)))
 (define (addend exp)
@@ -859,3 +868,61 @@
 (deriv '(+ x 3) 'x)
 (deriv '(* x y) 'x)
 (deriv '(* (* x y) (+ x 3)) 'x)
+(deriv '(** x 3) 'x)
+
+;; reduce result if sum terms are numbers
+(define (make-sum x y)
+  (cond ((=number? x 0) y)
+	((=number? y 0) x)
+	((and (number? x) (number? y)) (+ x y))
+	(else (list '+ x y))))
+(define (=number? exp num)
+  (and (number? exp) (= exp num)))
+;; also for the product
+(define (make-product x y)
+  (cond ((or (=number? x 0) (=number? y 0)) 0)
+	((=number? x 1) y)
+	((=number? y 1) x)
+	((and (number? x) (number? y)) (* x y))
+	(else (list '* x y))))
+
+
+;; 2.56
+;; d(u^n)/dx = (nu^n-1)*(du/dx)
+(define (exponentiation? exp)
+  (and (pair? exp) (eq? (car exp) '**)))
+(define (make-exponentiation base exponent)
+  (cond ((=number? exponent 0) 1)
+	((=number? exponent 1) base)
+	((=number? base 1) 1)
+	((and (number? base)
+	      (number? exponent)) (** base exponent))
+	(else (list '** base exponent))))
+(define (** base exponent)
+  (cond ((= exponent 0) 1)
+	((< exponent 0)
+	 (* (/ 1 base) (** base (+ exponent 1))))
+	((> exponent 0)
+	 (* base (** base (- exponent 1))))))
+(define (exponent exp)
+  (caddr exp))
+(define (base exp)
+  (cadr exp))
+
+
+;; 2.57
+
+(deriv '(* x y (+ x 3)) 'x)
+
+(define (augend exp)
+  (accumulate make-sum 0 (cddr exp)))
+(define (multiplicand exp)
+  (accumulate make-product 1 (cddr exp)))
+(define (accumulate op initial seq)
+  (if (null? seq)
+      initial
+      (op (car seq)
+	  (accumulate op initial (cdr seq)))))
+
+;; 2.58
+       
