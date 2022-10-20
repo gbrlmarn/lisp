@@ -925,4 +925,47 @@
 	  (accumulate op initial (cdr seq)))))
 
 ;; 2.58
+;; a
+(define (make-sum x y)
+  (cond ((=number? x 0) y)
+	((=number? y 0) x)
+	((and (number? x) (number? y)) (+ x y))
+	(else (list x '+ y))))
+(define (sum? exp)
+  (and (pair? exp) (eq? (cadr exp) '+)))
+(define (addend exp)
+  (car exp))
+(define (augend exp)
+  (caddr exp))
+
+(define (make-product x y)
+  (cond ((or (=number? x 0) (=number? y 0)) 0)
+	((=number? x 1) y)
+	((=number? y 1) x)
+	((and (number? x) (number? y)) (* x y))
+	(else (list x '* y))))
+(define (product? exp)
+  (and (pair? exp) (eq? (cadr exp) '*)))
+(define (multiplier exp)
+  (car exp))
+(define (multiplicand exp)
+  (caddr exp))
+		     
+;; testing
+(deriv '(x * (y * (x + 3))) 'x)
+(deriv '(x + 3) 'x)
+
+;; b
+(define (clean exp)
+  (if (null? (cdr exp))
+      (car exp)
+      exp))
+(define (augend exp)
+  (clean (cddr exp)))
+(define (multiplicand exp)
+  (clean (cddr exp)))
+
+(deriv '(x + 3 * (x + y + 2)) 'x)
+
+
        
