@@ -1151,3 +1151,24 @@
 (define tree2 (list->tree (list 3 4 5 6 7 8)))
 (union-set-tree tree1 tree2)
 (intersection-set-tree tree1 tree2)
+
+;; 2.66
+(define (lookup given-key set-of-records)
+  (cond ((null? set-of-records) false)
+	((= given-key (key (entry set-of-records)))
+	 (entry set-of-records))
+	((< given-key (key (entry set-of-records)))
+	 (lookup given-key (left-branch set-of-records)))
+	(else (lookup given-key (right-branch set-of-records)))))
+
+;; another version using let
+(define (lookup given-key set-of-records)
+  (if (null? set-of-records) #f
+      (let ((parent (entry set-of-records)))
+	(cond ((eq? parent '()) #f)
+	      ((= given-key parent) parent)
+	      (else
+	       (lookup given-key
+		       (if (< given-key parent)
+			   (left-branch set-of-records)
+			   (right-branch set-of-records))))))))
