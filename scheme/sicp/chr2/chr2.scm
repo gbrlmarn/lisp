@@ -1100,3 +1100,54 @@
 ;; a. Both procedures produce the same result. (In order list)
 ;; b. First procedure: O(n*log(n)) Second procedure: O(n)
 
+;; 2.64
+(define (list->tree elements)
+  (car (partial-tree elements (length elements))))
+
+(define (partial-tree elts n)
+  (if (= n 0)
+      (cons '() elts)
+      (let ((left-size (quotient (- n 1) 2)))
+	(let ((left-result (partial-tree elts left-size)))
+	  (let ((left-tree (car left-result))
+		(non-left-elts (cdr left-result))
+		(right-size (- n (+ left-size 1))))
+	    (let ((this-entry (car non-left-elts))
+		  (right-result (partial-tree (cdr non-left-elts)
+					      right-size)))
+	      (let ((right-tree (car right-result))
+		    (remaining-elts (cdr right-result)))
+		(cons (make-tree this-entry left-tree right-tree)
+		      remaining-elts))))))))
+;; a. (list->tree (list 1 3 5 7 9 11))
+;;    (5 (1 () (3 ())) (9 (7 () ()) (11 () ())))
+;; b. O(n)
+(list->tree (list 1 3 5 7 9 11))
+(tree->list-2 (list->tree (list 1 2 3 4 5 6)))
+
+;; 2.65
+(define (union-set-tree set1 set2)
+  (cond ((null? set1) set2)
+	((null? set2) set1)
+	(else (list->tree
+	       (union-set
+		(tree->list set1)
+		(tree->list set2))))))
+(define (intersection-set-tree set1 set2)
+  (cond ((null? set1) '())
+	((null? set2) '())
+	(else (list->tree
+	       (intersection-set
+		(tree->list set1)
+		(tree->list set2))))))
+(define (tree->list tree)
+  (if (null? tree)
+      '()
+      (append (tree->list (left-branch tree))
+	      (cons (entry tree)
+		    (tree->list (right-branch tree))))))
+
+(define tree1 (list->tree (list 1 2 3 4 5 6)))
+(define tree2 (list->tree (list 3 4 5 6 7 8)))
+(union-set-tree tree1 tree2)
+(intersection-set-tree tree1 tree2)
