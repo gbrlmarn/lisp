@@ -1247,13 +1247,62 @@
   (if (leaf? tree)
       (if (eq? symbol (symbol-leaf tree))
 	  '()
-	  (error "Symbol " sym " missing"))
+	  (error "Missing symbol: " sym))
       (let ((left (left-branch tree)))
 	(if (memq symbol (symbols left))
 	    (cons 0 (encode-symbol symbol left))
 	    (cons 1 (encode-symbol symbol (right-branch tree)))))))
+;; without let
+(define (encode-symbol symbol tree)
+  (cond ((leaf? tree)
+	 (if (eq? symbol (symbol-leaf tree))
+	     '()
+	     (error symbol " doesn't exists in tree")))
+	((memq symbol (symbols (left-branch tree)))
+	 (cons 0 (encode-symbol symbol (left-branch tree))))
+	(else
+	 (cons 1 (encode-symbol symbol (right-branch tree))))))
+      
 (display sample-message)
 (decode sample-message sample-tree)
 (encode (decode sample-message sample-tree) sample-tree)
 
+;; 2.69
+(define (generate-huffman-tree pairs)
+  (successive-merge (make-leaf-set pairs)))
+(define (successive-merge leaf-set)
+  (if (null? (cdr leaf-set))
+      (car leaf-set)
+      (successive-merge
+       (adjoin-set
+	(make-code-tree (car leaf-set) (cadr leaf-set))
+	(cddr leaf-set)))))
+(generate-huffman-tree '((A 3) (B 5) (C 6) (D 6)))
+;; 2.70
+(define rock-lyrics
+  '((A 2) (BOOM 1) (GET 2) (JOB 2)
+    (NA 16) (SHA 3) (YIP 9) (WAH 1)))
+(define rock-tree
+  (generate-huffman-tree rock-lyrics))
+(define song
+  '(Get a job
+	Sha na na na na na na na na
+	Get a job
+	Sha na na na na na na na na
+	Wah yip yip yip yip yip yip yip yip yip
+	Sha boom))
+;; How many bits are required to encode this song
+(length
+ (encode song rock-tree))
+;; 84
 
+;; What is the smallest number of bits that would be needed to
+;; encode this song if we used a fixed-length code for the
+;; eight-symbol alphabet
+(define rock-tree-single
+  (generate-huffman-tree
+   '((A 0) (BOOM 1) (GET 2) (JOB 3)
+     (NA 4) (SHA 5) (YIP 6) (WAH 7))))
+(length (encode song rock-tree-single)) ;; 106?? why tho?
+(* 3 (length song)) ;; we use 3 bits to encode all 8 symbols
+;; 108
