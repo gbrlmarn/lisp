@@ -145,5 +145,42 @@
 ((acc 'nosecret 'withdraw) 40)
 
 
+;; 3.6 
+(define rand
+  (let ((x rand-init))
+    (lambda ()
+      (set! x (rand-update x))
+      x)))
+(define rand-init 0)
+(define (rand-update x)
+  (+ x 1))
+(define (random-in-range low high)
+  (let ((range (- high low)))
+    (+ low (random range))))
+(random-in-range 1 10)
+(rand)
+
+(define rand
+  (let ((x rand-init))
+    (define (dispatch msg)
+      (cond ((eq? msg 'generate)
+	     (begin (set! x (rand-update x))
+		    x))
+	    ((eq? msg 'reset)
+	     (lambda (new-value)
+	       (set! x new-value)))))
+    dispatch))
+(define rand-init 0)
+(define (rand-update x) (+ x 1))
+;; testing
+(rand 'generate)
+(rand 'generate)
+((rand 'reset) 0)
+((rand 'reset) 10)
+(rand 'generate)
+
+
+	   
+
 
     
