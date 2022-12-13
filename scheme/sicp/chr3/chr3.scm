@@ -179,8 +179,115 @@
 ((rand 'reset) 10)
 (rand 'generate)
 
+;; How state complicates things...
 
-	   
+;; has state
+(define (make-simplified-withdraw balance)
+  (lambda (amount)
+    (set! balance (- balance amount))
+    balance))
+
+(define my-bank (make-simplified-withdraw 20))
+(my-bank 5)
+
+;; doesn't have state
+
+(define (make-decrementer balance)
+  (lambda (amount)
+    (- balance amount)))
+(define my-stateless-bank (make-decrementer 20))
+(my-stateless-bank 10)
+
+;; Factorial iterative
+;; time  O(n) = n
+;; space O(n) = 1
+(define (factorial n)
+  (define (iter product counter)
+    (if (> counter n)
+	product
+	(iter (* counter product)
+	      (+ counter 1))))
+  (iter 1 1))
+(factorial 3)
+
+;; Factorial recursive
+;; time  O(n) = n
+;; space O(n) = n
+(define (factorial n)
+  (if (= n 1)
+      1
+      (* n (factorial (- n 1)))))
+(factorial 3)
+
+;; Imperative factorial
+(define (factorial n)
+  (let ((product 1)
+	(counter 1))
+    (define (iter)
+      (if (> counter n)
+	  product
+	  (begin (set! product (* counter product))
+		 (set! counter (+ counter 1))
+		 (iter))))
+    (iter)))
+;; The leason is...because of the imperative nature,
+;; if we change places of the instructions:
+;; (set! product ...) and (set! counter ...)
+;; the program will be incorrect...
+;; Programming with assignment forces us to
+;; carefully consider the order of those assignments
+
+;; 3.7
 
 
-    
+;; 3.3 
+(define (make-account balance password)
+  (define (withdraw amount)
+    (if (>= balance amount)
+	(begin	(set! balance (- balance amount))
+		balance)
+	 "Insufficient funds..."))
+  (define (deposit amount)
+    (set! balance (+ balance amount))
+    balance)
+  (define (dispatch pass msg)
+    (if (eq? pass password)
+	(cond ((eq? msg 'withdraw) withdraw)
+	      ((eq? msg 'deposit) deposit)
+	      (else
+	       (error "Option not present...")))
+	(error "Incorrect password...")))
+  dispatch)
+
+(define (make-joint account password join-password)
+  (define (withdraw amount)
+    ((account password 'withdraw) amount))
+  (define (deposit amount)
+    ((account password 'deposit) amount))
+  (define (dispatch pass msg)
+    (if (eq? pass join-password)
+	(cond ((eq? msg 'withdraw) withdraw)
+	      ((eq? msg 'deposit) deposit)
+	      (else
+	       (error "Option not present...")))
+	(error "Incorrect joint password...")))
+  dispatch)
+
+(define peter-acc (make-account 100 'open-sesame))
+(define paul-acc
+  (make-joint peter-acc 'open-sesame 'rose-bud))
+((peter-acc 'open-sesame 'withdraw) 10)
+((paul-acc 'rose-bud 'deposit) 10)
+
+;; 3.8
+(define f
+  (let ((start 0))
+    (lambda (x)
+      (set! start (- x start))
+      (- x start))))
+(f 0)
+(f 1)
+(+ (f 0) (f 1))
+(+ (f 1) (f 0))
+
+
