@@ -361,6 +361,38 @@
 ;; (let ((<var> <exp>)) <body>)
 ;; ((lambda (<var>) <body>) <exp>)
 
+(define (make-withdraw balance)
+  (let ((initial-balance balance))
+    (lambda (amount)
+      (if (>= initial-balance amount)
+	  (begin (set! initial-balance
+		       (- initial-balance
+			  amount))
+		 initial-balance)
+	  (error ("Insufficient funds"))))))
+(define W1 (make-withdraw 100))
+(W1 50)
+
+;; lambda version
+;; EG: make-withdraw
+;;     W1: make-withdraw 100
+;;     balance: 100
+;; E1->EG: balance: 50
+;;         amount: 50
+;; E2->EG: balance: 0
+;;         amount: 50
+;; E3->EG: insufficient funds...
+
+;; let version
+;; EG: make-withdraw
+;;     W1: make-withdraw 100
+;;     balance: 100
+;; E1->EG: initial-balance: 100
+;; E2->E1: amount: 50
+;; E3->EG: initial-balance: 50
+;; E4->E3: amount: 0
+;; E5->EG: initial-balance 0
+;; E6->E5: 'insufficient funds'
 
 
 
