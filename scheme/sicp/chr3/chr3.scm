@@ -291,3 +291,76 @@
 (+ (f 1) (f 0))
 
 
+;; Procedures and environments
+(define (square x)
+  (* x x))
+(square 3)
+;; Equivalent :D
+(define square
+  (lambda (x)
+    (* x x)))
+(square 3)
+
+;; Applying Simple Procedures
+(define (square x)
+  (* x x))
+(define (sum-of-squares x y)
+  (+ (square x) (square y)))
+(define (f a)
+  (sum-of-squares (+ a 1) (* a 2)))
+(f 5)
+
+;; 3.9
+(define (factorial n)
+  (if (= n 1)
+      1
+      (* n (factorial (- n 1)))))
+(factorial 3)
+;; E1 n:3 (* 3 (factorial 2))
+;; E2 n:2 (* 2 (factorial 1))
+;; E3 n:1 1 
+(define (factorial n)
+  (define (fact-iter product counter max)
+    (if (> counter max)
+	product
+	(fact-iter (* product counter)
+		   (+ counter 1)
+		   max)))
+  (fact-iter 1 1 n))
+(factorial 3)
+;; E1 n:3 (factorial 3)
+;; E2 product:1
+;;    counter:1
+;;    max:3
+;;    (fact-iter 1 1 3)
+;; E3 product: 1
+;;    counter: 2
+;;    max:     3
+;;    (fact-iter 1 2 3)
+;; E4 product: 2
+;;    counter: 3
+;;    max:     3
+;;    (fact-iter 2 3 3)
+;; E5 product: 6
+;;    counter: 4
+;;    max:     3
+;;    6
+
+(define (make-withdraw balance)
+  (lambda (amount)
+    (if (>= balance amount)
+	(begin (set! balance
+		     (- balance amount))
+	       balance)
+	(error "Insufficinet funds"))))
+(define W1 (make-withdraw 100))
+(W1 50)
+(define W2 (make-withdraw 100))
+
+;; 3.10
+;; (let ((<var> <exp>)) <body>)
+;; ((lambda (<var>) <body>) <exp>)
+
+
+
+
