@@ -394,5 +394,150 @@
 ;; E5->EG: initial-balance 0
 ;; E6->E5: 'insufficient funds'
 
+;; Internal definitions
+
+(define (sqrt x)
+  (define (good-enough? guess)
+    (< (abs (- (square guess) x)) 0.001))
+  (define (improve guess)
+    (average guess (/ x guess)))
+  (define (sqrt-iter guess)
+    (if (good-enough? guess)
+	guess
+	(sqrt-iter (improve guess))))
+  (sqrt-iter 1.0))
+(define (average x y)
+  (/ (+ x y) 2))
+(sqrt 10)
+;; GE: (sqrt x)
+;; E1->GE: x:2
+;;         good-enough? improve sqrt-iter
+;; E2->E1: guess: 1 sqrt-iter
+;; E3->E1: guess: 1 good-enough?
+
+;; 3.11
+(define (make-account balance)
+  (define (withdraw amount)
+    (if (>= balance amount)
+	(begin (set! balance
+		     (- balance amount))
+	       balance)
+	(error "Insufficient funds")))
+  (define (deposit amount)
+    (set! balance (+ balance amount))
+    balance)
+  (define (dispatch m)
+    (cond ((eq? m 'withdraw) withdraw)
+	  ((eq? m 'deposit) deposit)
+	  (else
+	   (error "Unknown procedure: " m))))
+  dispatch)
+
+(define acc (make-account 50))
+;; EG: acc make-account
+;; E1->EG: balance: 50 withdraw deposit dispatch
+((acc 'deposit) 40)
+;; E2->E1: m: 'deposit
+;; E3->E2: amount: 40
+((acc 'withdraw) 60)
+;; E2->E1: m: 'withdraw
+;; E3->E2: amount: 60
+
+(define acc2 (make-account 100))
+;; Where is the local state for acc kept?
+;; The local state is kept in balance
+;; that is created when the make-account
+;; is called.
+
+;; How are the local states for the two
+;; accounts keps distinct?
+;; They are distinct because every call
+;; of make-account creates a new
+;; environment where balance has a
+;; certain number
+
+;; Which parts of the env structure
+;; are shared between acc and acc2?
+;; Everyting is shared between them
+;; except that they are created in
+;; different environments with different
+;; local balance variable
+
+;; Mutable list structure
+(define x '((a b) c d))
+(define y '(e f))
+
+(display x)
+(car x y)
+(define z (cons y (cdr x)))
+
+;; Define new cons
+(define (new-cons x y)
+  (let ((new (get-new-pair)))
+    (set-car! new x)
+    (set-cdr! new y)
+    new))
+
+;; 3.12
+(define (new-append x y)
+  (if (null? x)
+      y
+      (cons (car x)
+	    (new-append (cdr x) y))))
+(define (new-append! x y)
+  (set-cdr! (last-pair x) y)
+  x)
+(define (last-pair x)
+  (if (null? (cdr x))
+      x
+      (last-pair (cdr x))))
+(define x (list 'a 'b))
+(define y (list 'c 'd))
+(define z (append x y))
+z
+;;(a b c d)
+(cdr x)
+;; (b)
+(define w (append! x y))
+w
+;; (a b c d)
+(cdr x)
+;; (b c d)
+
+;; 3.13
+(define (make-cycle x)
+  (set-cdr! (last-pair x) x)
+  x)
+(define z (make-cycle (list 'a 'b 'c)))
+;;(last-pair z)
+;; z will be a -> b-> c
+;;           |        |
+;;           \--------/
+;; the command last-pair will create an
+;; infinite recursion because the list
+;; 'z' is circular and never ends and
+;; it's dangerous :D
+
+;; 3.14
+(define (mystery x)
+  (define (loop x y)
+    (if (null? x)
+	y
+	(let ((temp (cdr x)))
+	  (set-cdr! x y)
+	  (loop temp x))))
+  (loop x '()))
+(define v (list 'a 'b 'c 'd))
+(display v)
+;; |a|*| -> |b|*| -> |c|*| -> |d| |
+(define w (mystery v))
+(display w)
+;; E1->EG: temp: (b c d) x: (a)
+;; E2->E1: temp: (c d) x: (b a)
+;; E3->E2: temp: (d) x: (c b a)
+;; E4->E3: temp: () x: (d c b a)
+;; |d|*| -> |c|*| -> |b|*| -> |a| |
+
+
 
 
