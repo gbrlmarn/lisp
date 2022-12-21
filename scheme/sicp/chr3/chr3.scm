@@ -538,6 +538,42 @@ w
 ;; E4->E3: temp: () x: (d c b a)
 ;; |d|*| -> |c|*| -> |b|*| -> |a| |
 
+;; Sharing and identity
+(define x (list 'a 'b))
+(define z1 (cons x x))
+(display z1)
+(define z2 (cons
+	    (list 'a 'b)
+	    (list 'a 'b)))
+(display z2)
+(define (set-wow! x)
+  (set-car! (car x) 'wow) x)
+(eq? z1 z2)
 
+;; 3.15
+;; z1
+;; |*|*|
+;;  | |
+;;  | \---> ('wow b)
+;;  \---> ('wow b)
+;; z2
+;; |*|*|
+;;  | |
+;;  | \---> ('wow b)
+;;  \---> (a b)
 
-
+;; 3.16
+(define (count-pairs x)
+  (if (not (pair? x))
+      0
+      (+ (count-pairs (car x))
+	 (count-pairs (cdr x))
+	 1)))
+(count-pairs '(a b c))
+;; returns 3 
+(count-pairs '('(a)))
+;; returns 4
+(count-pairs '('('(a))))
+;; returns 7
+;; every '() adds 2 because it also
+;; counts the empty lists as pairs
