@@ -569,11 +569,61 @@ w
       (+ (count-pairs (car x))
 	 (count-pairs (cdr x))
 	 1)))
-(count-pairs '(a b c))
-;; returns 3 
-(count-pairs '('(a)))
+(define str1 '(a b c))
+(count-pairs str1)
+;; returns 3
+;;( . ) -> ( . ) -> ( . ) -> null
+;; |        |        |
+;; V        V        V
+;;'a       'b       'c
+(define x '(a))
+(define y (cons x x))
+(define str2 (list y))
+(count-pairs str2)
 ;; returns 4
-(count-pairs '('('(a))))
+;; ( . ) -> null
+;;  |
+;;  V
+;; ( . )
+;;  | |
+;;  V V
+;; ( . ) -> null
+;;  |
+;;  V
+;; 'a
+
+(define str3 (cons y y))
+(count-pairs str3)
 ;; returns 7
-;; every '() adds 2 because it also
-;; counts the empty lists as pairs
+;; ( . )
+;;  | |
+;;  V V
+;; ( . )
+;;  | |
+;;  V V
+;; ( . ) -> null
+;;  |
+;;  V
+;; 'a
+
+;; 3.17
+(define (count-pairs x)
+  (let ((found '()))
+    (define (helper x)
+      (if
+       (or (not (pair? x))
+	   (memq x found))
+       0
+       (begin
+	 (set! found (cons x found))
+	 (+ (helper (car x))
+	    (helper (cdr x))
+	    1))))
+    (helper x)))
+
+;; Testing
+(count-pairs str1)
+(count-pairs str2)
+(count-pairs str3)
+
+
