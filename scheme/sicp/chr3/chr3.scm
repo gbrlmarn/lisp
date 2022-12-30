@@ -626,4 +626,161 @@ w
 (count-pairs str2)
 (count-pairs str3)
 
+;; 3.18
+(define (cycle? lst)
+  (let ((visited '()))
+    (define (helper x)
+      (set! visited (cons x visited))
+      (cond ((null? (cdr x)) #f)
+	    ((memq (cdr x) visited) #t)
+	    (else (helper (cdr x)))))
+    (helper lst)))
+(cycle? (list 'a 'b 'c))
+(cycle? z)
+
+;; 3.19
+;; ...
+
+;; 3.20
+(define x (cons 1 2))
+;; (1 . 2)
+(define z (cons x x))
+;; (  .  )
+;;  |   |
+;;  V   V
+;;  x   x
+;; ((1 . 2) 1 . 2)
+(set-car! (cdr z) 17)
+;; (cdr z) => x
+;; (set-car! x 17) => (17 . 2)
+;; (z) => ((17 . 2) 17 . 2)
+;; ((17 . 2) 17 . 2)
+
+
+;; Representing Queues
+;; Queue = FIFO
+;; One constructor -> (make-queue)
+;; Two selectors ->
+;;  (empty-queue? <queue>)
+;;  (front-queue <queue>)
+;; Two mutators ->
+;;  (insert-queue! <queue> <item>)
+;;  (delete-queue! <queue>)
+
+;; Queue representation
+;; q-> ( . )---rear-ptr--------------\
+;;      |                            V 
+;;      \-front-ptr-> (a. )->(b. )->(c. )
+;;                                     |
+;;                                     V
+;;                                    null
+
+;; Queue implementation
+(define (front-ptr queue)
+  (car queue))
+(define (rear-ptr queue)
+  (cdr queue))
+(define (empty-queue? queue)
+  (null? (front-ptr queue)))
+(define (front-queue queue)
+  (if (empty-queue? queue)
+      (error "Queue is empty")
+      (car (front-ptr queue))))
+(define (set-front-ptr! queue item)
+  (set-car! queue item))
+(define (set-rear-ptr! queue item)
+  (set-cdr! queue item))
+(define (make-queue)
+  (cons '() '()))
+(define (front-queue queue)
+  (if (empty-queue? queue)
+      (error "Queue is empty")
+      (car (front-ptr queue))))
+
+(define (insert-queue! queue item)
+  (let ((new-pair (cons item '())))
+    (cond ((empty-queue? queue)
+	   (set-front-ptr! queue new-pair)
+	   (set-rear-ptr! queue new-pair)
+	   queue)
+	  (else
+	   (set-cdr! (rear-ptr queue)
+		     new-pair)
+	   (set-rear-ptr! queue
+			  new-pair)
+	   queue))))
+
+(define (delete-queue! queue)
+  (cond ((empty-queue? queue)
+	 (error "Queue allready empty"))
+	(else
+	 (set-front-ptr!
+	  queue (cdr (front-ptr queue)))
+	 queue)))
+
+;; 3.21
+(define q1 (make-queue))
+(insert-queue! q1 'a)
+(insert-queue! q1 'b)
+(delete-queue! q1)
+(delete-queue! q1)
+
+(define (print-queue queue)
+  (car queue))
+
+;; Testing 
+(define q1 (make-queue))
+(print-queue q1)
+
+(insert-queue! q1 'a)
+(print-queue q1)
+
+(insert-queue! q1 'b)
+(print-queue q1)
+
+(delete-queue! q1)
+(print-queue q1)
+
+(delete-queue! q1)
+(print-queue q1)
+
+;; 3.22
+(define (make-queue)
+  (let ((front-ptr '()) (rear-ptr '()))
+    (define (empty-q?)
+      (null? front-ptr))
+    (define (insert-q! item)
+      (let ((new-pair (cons item '())))
+	(cond
+	 ((empty-q?)
+	  (set! front-ptr new-pair)
+	  (set! rear-ptr new-pair)
+	  front-ptr)
+	 (else
+	  (set-cdr! rear-ptr new-pair)
+	  (set! rear-ptr new-pair)
+	  front-ptr))))
+    (define (delete-q!)
+      (cond
+       ((empty-q?)
+	(error "Queue already empty"))
+       (else
+	(set! front-ptr (cdr front-ptr))
+	front-ptr)))
+    (define (dispatch m)
+      (cond
+       ((eq? m 'insert-q!) insert-q!)
+       ((eq? m 'delete-q!) (delete-q!))
+       ((eq? m 'empty-q?) (empty-q?))
+       (else
+	(error "Incorrect opperation."))))
+    dispatch))
+
+;; Testing
+(define q1 (make-queue))
+((q1 'insert-q!) 'b)
+((q1 'insert-q!) 'a)
+(q1 'delete-q!)
+(q1 'empty-q?)
+
 
