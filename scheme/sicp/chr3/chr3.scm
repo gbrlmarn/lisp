@@ -1010,3 +1010,62 @@ w
 	    ((eq? m 'insert-proc!) insert!)
 	    (else (error "Invalid operation"))))
     dispatch))
+
+;; 3.25
+(define (make-table)
+  (let ((local-table (list '*table*)))
+    (define (assoc key records)
+      (cond
+       ((null? records) #f)
+       ((equal? key (caar records))
+	(car records))
+       (else
+	(assoc key (cdr records)))))
+    (define (lookup keys)
+      (define (iter rem-keys records)
+	(cond
+	 ((null? rem-keys) records)
+	 ((not (pair? records)) #f)
+	 (else
+	  (let ((record
+		 (assoc (car rem-keys)
+			records)))
+	    (if record
+		(iter (cdr rem-keys)
+		      (cdr record)))))))
+      (iter keys (cdr local-table)))
+    (define (insert! keys value)
+      (define (iter rem-keys records)
+	(cond
+	 ((null? rem-keys)
+	  (set-cdr! records value))
+	 ((or (null? (cdr records))
+	      (not (pair? (cdr records))))
+	  (set-cdr!
+	   records
+	   (list
+	    (cons (car rem-keys) '())))
+	  (iter (cdr rem-keys)
+		(car records)))
+	 (else
+	  (let ((record
+		 (assoc (car rem-keys)
+			(cdr records))))
+	    (if record
+		(iter (cdr keys) record)
+		(begin
+		  (set-cdr!
+		   records
+		   (cons (list (car rem-keys))
+			 (cdr records)))
+		  (iter (cdr rem-keys)
+			(cadr records))))))))
+      (iter keys local-table))
+    (define (dispatch m)
+      (cond
+       ((eq? m 'lookup-proc) lookup)
+       ((eq? m 'insert-proc!) insert!)
+       (else
+	(error "Invalid procedure"))))
+    dispatch))
+
