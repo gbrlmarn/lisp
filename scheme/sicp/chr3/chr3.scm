@@ -870,6 +870,7 @@ w
 ((dq1 'print-deque))
 
 ;; Representing tables
+(define false #f)
 (define (lookup key table)
   (let ((record (assoc key (cdr table))))
     (if record
@@ -1068,4 +1069,92 @@ w
        (else
 	(error "Invalid procedure"))))
     dispatch))
+
+(define (lookup keys table)
+  ((table 'lookup-proc) keys))
+(define (insert! keys value table)
+  ((table 'insert-proc!) keys value))
+
+;; 3.26
+(define (entry tree) (car tree))
+(define (left tree) (cadr tree))
+(define (right tree) (caddr tree))
+
+(define (make-tree entry left right)
+  (list entry left right))
+
+(define (adjoin-set record set)
+  (cond
+   ((null? set) (make-tree record '() '()))
+   ((= (car record) (car (entry set))) set)
+   ((< (car record) (car (entry set)))
+    (make-tree (entry set)
+	       (adjoin-set record (left set))
+	       (right set)))
+   ((> (car record) (car (entry set)))
+    (make-tree
+     (entry set)
+     (left set)
+     (adjoin-set record (right set))))))
+
+(define (make-table)
+  (let ((local-table '()))
+    (define (lookup key records)
+      (cond
+       ((null? records) #f)
+       ((= key (car (entry records)))
+	(entry records))
+       ((< key (car (entry records)))
+	(lookup key (left records)))
+       ((> key (car (entry records)))
+	(lookup key (right records)))))
+    (define (insert! key value)
+      (let ((record (lookup key local-table)))
+	(if record
+	    (set-cdr! record value)
+	    (set! local-table
+		  (adjoin-set (cons key value)
+			      local-table)))))
+    (define (get key) (lookup key local-table))
+    (define (dispatch m)
+      (cond
+       ((eq? m 'get) get)
+       ((eq? m 'insert!) insert!)
+       ((eq? m 'print) local-table)
+       (else (error "Invalid operation"))))
+    dispatch))
+
+(define table (make-table))
+(define get (table 'get))
+(define put (table 'insert!))
+
+(put 20 'a)
+(put 21 'b)
+(put 30 'c)
+(put 79 'd)
+(put 50 'e)
+(table 'print)
+(get 50)
+
+;; 3.27
+
+(define (memo-fib)
+  (memorize
+   (lambda (n)
+     (cond ((= n 0) 0)
+	   ((= n 1) 1)
+	   (else (+ (memo-fib (- n 1))
+		    (memo-fib (- n 2))))))))
+
+;; the nth number will be computed in a
+;; linear number of steps because
+;; basically we iterate until n is 0
+
+;; (define memo-bif (memorize fib))
+;; Will not work because fib calls itself
+;; before memorizing...
+
+
+
+
 
