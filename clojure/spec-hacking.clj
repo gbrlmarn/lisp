@@ -154,3 +154,195 @@
            :animal/says "woof"
            :dog/tail? true
            :dog/breed "golden"})
+
+;; multi-spec
+
+;; definition
+(s/def :event/type keyword?)
+(s/def :event/timestamp int?)
+(s/def :search/url string?)
+(s/def :error/message string?)
+(s/def :error/code int?)
+
+(defmulti event-type :event/type)
+(defmethod event-type :event/search [_]
+  (s/keys :req [:event/type
+                :event/timestamp
+                :search/url]))
+(defmethod event-type :event/error [_]
+  (s/keys :req [:event/type
+                :event/timestamp
+                :error/message
+                :error/code]))
+
+;; declaration and testing
+(s/def :event/event
+  (s/multi-spec event-type :event/type))
+
+(s/valid? :event/event
+          {:event/type :event/search
+           :event/timestamp 239487
+           :search/url "https://clojure.org"})
+
+(s/valid? :event/event
+          {:event/type :event/error
+           :event/timestamp 23497
+           :error/message "Not found"
+           :error/code 403})
+
+(s/explain :event/event
+           {:event/type :event/restart})
+(s/explain :event/event
+           {:event/type :event/search
+            :search/url "here.there"
+            :event/timestamp 23})
+
+;; Collections
+
+(s/conform (s/coll-of keyword?)
+           [:a :b :c])
+(s/conform (s/coll-of number?)
+           #{5 10 2})
+(s/conform (s/coll-of number?)
+           [1 2 3])
+
+(s/def :ex/vnum3
+  (s/coll-of number?
+             :kind vector?
+             :count 3
+             :distinct true
+             :into #{}))
+(s/conform :ex/vnum3 [1 2 3])
+(s/explain :ex/vnum3 #{1 2 3})
+(s/explain :ex/vnum3 [1 1 1])
+(s/explain :ex/vnum3 [1 2 :a])
+
+(s/def :geom/point
+  (s/tuple double? double? double? ))
+(s/conform :geom/point [1.5 2.5 -0.5])
+(s/conform :geom/point [1 2.5 3.5])
+
+(s/def :game/scores (s/map-of string? int?))
+(s/conform :game/scores
+           {"Alice" 1000
+            "Bob" 1001})
+
+;; Sequences
+;; cat concatenation of predicates/patterns
+(s/def :cook/ingredient
+  (s/cat :quantity number?
+         :unit keyword?))
+(s/conform :cook/ingredient [2 :teaspoon])
+
+;; string instead of keyword
+(s/explain :cook/ingredient [11 "peaches"])
+
+;; leave one element behind
+(s/explain :cook/ingredient [12])
+
+;; * -> 0 or more
+;; + -> 1 or more
+;; ? -> 0 or 1
+
+(s/def :ex/seq-of-keywords
+  (s/* keyword?))
+(s/conform :ex/seq-of-keywords
+           [:a :b :c])
+(s/explain :ex/seq-of-keywords [10 20])
+
+(s/def :ex/odds-then-maybe-even
+  (s/cat :odds (s/+ odd?)
+         :even (s/? even?)))
+(s/conform :ex/odds-then-maybe-even
+           [1 3 5 100])
+(s/conform :ex/odds-then-maybe-even [13])
+(s/conform :ex/odds-then-maybe-even [10])
+
+(s/def :ex/opts
+  (s/* (s/cat :opt keyword?
+              :val boolean?)))
+(s/conform :ex/opts
+           [:silent? false
+            :verbose true])
+
+;; alt -> choice among alternatives
+;; predicates/patterns
+
+(s/def :ex/config
+  (s/* (s/cat :prop string?
+              :val (s/alt :s string?
+                          :b boolean?))))
+(s/conform :ex/config
+           ["-server" "foo"
+            "-verbose" true
+            "-user" "Joe"])
+(s/describe :ex/seq-of-keywords)
+(s/describe :ex/odds-then-maybe-even)
+
+(s/def :ex/even-strings
+       (s/& (s/* string?)
+            #(even? (count %))))
+(s/valid? :ex/even-strings ["a"])
+(s/valid? :ex/even-strings ["a" "b"])
+(s/valid? :ex/even-strings ["a" "b" "c"])
+(s/valid? :ex/even-strings ["a" "b" "c" "d"])
+
+(s/def :ex/nested
+  (s/cat :names-kw #{:names}
+         :names (s/spec (s/* string?))
+         :nums-kw #{:nums}
+         :nums (s/spec (s/* number?))))
+(s/conform :ex/nested
+           [:names ["a" "b"]
+            :nums [1 2 3]])
+(s/def :ex/unnested
+  (s/cat :names-kw #{:names}
+         :names (s/* string?)
+         :nums-kw #{:nums}
+         :nums (s/* number?)))
+(s/conform :ex/unnested
+           [:names "a" "b"
+            :nums 1 2 3])
+
+;; Using spec for validation
+(defn person-name
+  [person]
+  {:pre [(s/valid? :acct/person person)]
+   :post [(s/valid? string? %)]}
+  (str (:acct/first-name person)
+       " "
+       (:acct/last-name person)))
+(person-name 42)
+
+(person-name {:acct/first-name "Maestro"
+              :acct/last-name "Kimpembe"
+              :acct/email "maestro@fr.com"})
+
+(defn person-name
+  [person]
+  (let [p (s/assert :acct/person person)]
+    (str (:acct/first-name p)
+         " "
+         (:acct/last-name p))))
+(s/check-asserts true)
+(person-name 100)
+(person-name {:acct/first-name "Maestro"
+              :acct/last-name "Samuel"
+              :acct/email "umtiti@allez.fr"})
+
+(defn- set-config [prop val]
+  (println "set" prop val))
+
+(defn configure [input]
+  (let [parsed (s/conform :ex/config input)]
+    (if (s/invalid? parsed)
+      (throw (ex-info "Invalid input"
+                      (s/explain-data :ex/config input)))
+
+      (for [{prop :prop [_ val] :val} parsed]
+        (set-config (subs prop 1) val)))))
+
+(configure ["-server" "foo"
+            "-verbose" true
+            "-user" "joe"])
+
