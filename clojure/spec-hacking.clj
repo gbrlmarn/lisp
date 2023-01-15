@@ -346,3 +346,84 @@
             "-verbose" true
             "-user" "joe"])
 
+;; Spec'ing functions
+(defn ranged-rand
+  "Returns random int in range start end"
+  [start end]
+  (+ start (long (rand (- end start)))))
+(ranged-rand 10 20)
+;; Specification for this function
+(s/fdef ranged-rand
+  :args (s/and (s/cat :start int?
+                      :end int?)
+               #(< (:start %) (:end %)))
+  :ret int?
+  :fn (s/and
+       #(>= (:ret %) (-> % :args :start))
+       #(< (:ret %) (-> % :args :end))))
+(doc ranged-rand)
+
+(defn adder [x] #(+ x %))
+
+(s/fdef adder
+  :args (s/cat :x number?)
+  :ret (s/fspec :args (s/cat :y number?)
+                :ret number?)
+  :fn #(= (-> % :args :x) ((:ret %) 0)))
+((adder 4) 5)
+
+;; Macros receive code and
+;; produce code. code --> code
+(s/fdef clojure.core/declare
+  :args (s/cat :names (s/* simple-symbol?))
+  :ret any?)
+(declare 100)
+
+;; A game of cards
+(def suit? #{:club :diamond :heart :spade})
+(def rank? (into #{:jack :queen :king :ace} (range 1 10)))
+(def deck (for [suit suit? rank rank?]
+            [rank suit]))
+(s/def :game/card (s/tuple rank? suit?))
+(s/def :game/hand (s/* :game/card))
+
+(s/def :game/name string?)
+(s/def :game/score int?)
+(s/def :game/player
+  (s/keys :req [:game/name
+                :game/score
+                :game/hand]))
+
+(s/def :game/players (s/* :game/player))
+(s/def :game/deck (s/* :game/card))
+(s/def :game/game
+  (s/keys :req [:game/players
+                :game/deck]))
+
+(def kenny
+  {:game/name "Kenny S"
+   :game/score 100
+   :game/hand []})
+(s/valid? :game/player kenny)
+
+(s/explain
+ :game/game
+ {:game/deck deck
+  :game/players
+  [{:game/name "Kenny S"
+    :game/score 100
+    :game/hand [[2 :club]]}]})
+
+(defn total-cards
+  [{:keys [:game/deck :game/players] :as game}]
+  (apply + (count deck)
+         (map #(-> % :game/hand count)
+              players)))
+
+(defn deal [game] ....)
+
+(s/fdef deal
+  :args (s/cat :game :game/game)
+  :ret :game/game
+  :fn #(= (total-cards (-> % :args :game))
+          (total-cards (-> % :ret))))
