@@ -119,4 +119,20 @@
 (+ (Math/pow (Math/sin 0.5) 2)
    (Math/pow (Math/cos 0.5) 2))
 
+;; 11)
+(defn http-get [url]
+  (slurp (.openStream
+          (java.net.URL. url))))
+(http-get "https://google.com")
+(assert (.contains (http-get "https://www.w3.org") "html"))
+
+;; 12)
+(defn one-less-arg [f x]
+  (fn [& args]
+    (apply f x args)))
+
+;; 13)
+(defn two-fns [f g]
+  (fn [x] (f (g x))))
+
 
