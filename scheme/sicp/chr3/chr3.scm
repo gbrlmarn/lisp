@@ -1155,6 +1155,163 @@ w
 ;; before memorizing...
 
 
+;; 3.28
+(define (or-gate a1 a2 output)
+  (define (or-action-procedure)
+    (let ((new-value
+	   (logical-or (get-signal a1)
+		       (get-signal a2))))
+      (after-delay
+       or-gate-delay
+       (lambda () (set-signal! output
+			       new-value)))))
+  (add-action! a1 or-action-procedure)
+  (add-action! a2 or-action-procedure)
+  'ok)
+
+;; 3.38
+;; a. 45, 40, 35, 50
+;; b. ...
+
+;; 3.39
+(define x 10)
+(define s (make-serializer))
+(parallel-execute
+ (lambda () (set! x ((s (lambda () (* x x))))))
+ (s (lambda () (set! x (+ x 1)))))
+;; 101 121 11
+
+;; 3.40
+(define x 10)
+(parallel-execute (lambda () (set! x (* x x)))
+		  (lambda () (set! x (* x x x))))
+;; 1 000 000 = (p1 10 * 10) -> (p2 100 * 100)
+;; 10 000 = p1 = 10 * (p2 x = 1000)
+;; 10 * 100 * 100 = 100 000
+;; With serialized procedures
+(define x 10)
+(define s (make-serializer))
+(parallel-execute (s (lambda () (set! x (* x x))))
+		  (s (lambda () (set! x (* x x x)))))
+;; 1 000 000
+
+;; 3.41
+;; Balance check doesn't need to be serialized
+;; because it doesn't change the state of the account
+
+;; 3.42
+;; Is the same just that the procedures operate under
+;; the same serializer
 
 
+;; Serializer aka Mutex implementation
+(define (make-serializer)
+  (let ((mutex (make-mutex)))
+    (lambda (p)
+      (define (serialized-p . args)
+	(mutex 'acquire)
+	(let ((val (apply p args)))
+	  (mutex 'release)
+	  val))
+      serialized-p)))
+
+(define false #f)
+(define true #t)
+(define (make-mutex)
+  (let ((cell (list false)))
+    (define (the-mutex m)
+      (cond ((eq? m 'acquire)
+	     (if (test-and-set! cell)
+		 (the-mutex 'acquire)))
+	    ((eq? m 'release) (clear! cell))))
+    the-mutex))
+(define (clear! cell) (set-car! cell false))
+(define (test-and-set! cell)
+  (if (car cell) true
+      (begin (set-car! cell true)
+	     false)))
+
+;; 3.47
+;; a) 
+(define (make-semaphore n)
+  (let ((lock (make-mutex))
+	(counter 0))
+    (define (semaphore m)
+      (cond ((eq? m 'acquire)
+	     (lock 'acquire)
+	     (if (< counter m)
+		 (begin (set! counter (+ counter 1))
+			(lock 'release))
+		 (begin (lock 'release)
+			(semaphore 'acquire))))
+	    ((eq? m 'release)
+	     (lock 'acquire)
+	     (set! counter (- counter 1))
+	     (lock 'release))
+	    (else (error "Unknown command"))))
+    semaphore))
+
+;; Streams(delayed lists)
+
+;; Classic sum of primes
+(define (sum-primes a b)
+  (define (iter count res)
+    (cond ((> count b) res)
+	  ((prime? count)
+	   (iter (+ count 1) (+ res count)))
+	  (else
+	   (iter (+ count 1) res))))
+  (iter a 0))
+
+(define (prime? x)
+  (= x (smallest-divisor x)))
+(define (smallest-divisor x)
+  (find-divisor x 2))
+(define (find-divisor x count)
+  (cond ((< x (square count)) x)
+	((divides? count x) count)
+	(else (find-divisor x
+			    (+ count 1)))))
+(define (square x)
+  (* x x))
+(define (divides? a b)
+  (= (remainder b a) 0))
+
+(sum-primes 1 10)
+
+;; Sum of prime numbers
+(define (enumerate-interval low high)
+  (if (> low high)
+      '()
+      (cons low
+	    (enumerate-interval (+ low 1)
+				high))))
+(enumerate-interval 1 10)
+
+(define (sum-primes a b)
+  (accumulate + 0
+	      (filter
+	       prime?
+	       (enumerate-interval a b))))
+(define (accumulate proc start lst)
+  (if (null? lst)
+      start
+      (accumulate proc
+		  (proc start
+			(car lst))
+		  (cdr lst))))
+(define (filter prop lst)
+  (cond ((null? lst) '())
+	((prop (car lst))
+	 (cons (car lst)
+	       (filter prop (cdr lst))))
+	(else
+	 (filter prop (cdr lst)))))
+
+(filter prime? (enumerate-interval 1 10))
+(accumulate + 0 (enumerate-interval 1 10))
+
+;; Enumerate
+;; Accumulate
+;; Filter
 
