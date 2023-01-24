@@ -1,0 +1,28 @@
+* Playing around with Lisp dialects
+
+** What I have covered so far
+   |-----------+------------------|
+   | Dialect   | Covered          |
+   |-----------+------------------|
+   | *Clojure* | Spec             |
+   |           | Functions        |
+   |           | Collections      |
+   |-----------+------------------|
+   | *Scheme*  | SICP - Chapter 1 |
+   |           | SICP - Chapter 2 |
+   |           | SICP - Chapter 3 |
+   |-----------+------------------|
+   
+** What I would like to cover in the future
+   |---------------+--------------------------------|
+   | Dialect       | To cover                       |
+   |---------------+--------------------------------|
+   | *Clojure*     | Clojure for the brave and true |
+   |               | The joy of Clojure             |
+   |---------------+--------------------------------|
+   | *Common Lisp* | ANSI Common Lisp               |
+   |---------------+--------------------------------|
+  
+
+
+  
