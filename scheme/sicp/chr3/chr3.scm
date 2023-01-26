@@ -1337,8 +1337,11 @@ w
 (define (stream-cdr stream) (force (cdr stream)))
 
 ;; Stream in action
-(define (cons-stream a b)
-  (cons a (delay b)))
+(define-syntax cons-stream
+  (syntax-rules ()
+    ((cons-stream a b)
+     (cons a (delay b)))))
+
 (define the-empty-stream '())
 (define (stream-enumerate-interval low high)
   (if (> low high)
@@ -1366,14 +1369,10 @@ w
       (delay (stream-enumerate-interval 101
 					500)))
 
-(define (my-delay exp)
-  (lambda () exp))
-(define (my-force delayed-exp)
-  (delayed-exp))
-
-
-(car (cdr (filter prime?
-		  (enumerate-interval 100 200))))
+(car
+ (cdr
+  (filter prime?
+	  (enumerate-interval 100 200))))
 (stream-car
  (stream-cdr
   (stream-filter prime?
@@ -1444,3 +1443,29 @@ w
 (stream-ref y 7)
 (display-stream z)
 
+;; 3.52 Infinite Streams
+;; Macro for delay
+(define-syntax delay
+  (syntax-rules ()
+    ((delay expr)
+     (lambda ()
+       (expr)))))
+;; Macro for cons-stream
+(define-syntax cons-stream
+  (syntax-rules ()
+    ((cons-stream a b)
+     (cons a (delay b)))))
+
+(define (integers-starting-from n)
+  (cons-stream
+   n
+   (lambda () (integers-starting-from (+ n 1)))))
+
+(define integers (integers-starting-from 1))
+(define (divisibile? x y) (= (remainder x y) 0))
+(define no-sevens
+  (stream-filter
+   (lambda (x) (not (divisibile? x 7)))
+   integers))
+
+(stream-ref no-sevens 100)
