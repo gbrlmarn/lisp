@@ -58,7 +58,35 @@
 
 (my-flatten '(a (b (c d) e)))
 
-(pair? 'a)
-(append '(a) '(b c))
+(define (compress lst)
+  ;; 8) Eliminate consecutive duplicates of list elements.
+  (cond ((null? lst) '())
+	((null? (cdr lst)) lst)
+	((equal? (car lst) (cadr lst))
+	 (compress (cdr lst)))
+	(else
+	 (append  (list (car lst))
+		  (compress (cdr lst))))))
+(compress '(a a a a b c c a a d e e e e))
+
+(define (pack lst)
+  ;; 9) Pack consecutive duplicates of list into sublists.
+  (if (null? lst)
+      '()
+      (let iter ((from (cdr lst))
+		 (to (list (car lst))))
+	(cond ((null? from) (list to))
+	      ((equal? (car to)
+		       (car from))
+	       (iter (cdr from)
+		     (cons (car from)
+			   to)))
+	      (else
+	       (cons
+		to
+		(iter (cdr from)
+		      (list (car from)))))))))
+(pack '(a a a a b c c a a d e e e e))
 
 
+	    
