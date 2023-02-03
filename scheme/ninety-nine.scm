@@ -29,20 +29,8 @@
       (+ 1 (length (cdr lst)))))
 (length '(a b c d))
 
-(define fold-left
-  (lambda (f lst res)
-    (if (null? lst)
-	res
-	(fold-left
-	 f
-	 (cdr lst)
-	 (cons (car lst) res)))))
-(define reverse
-  (lambda (lst)
-    (fold-left cons lst '())))
-(reverse '(a b c d))
-
 (define (reverse lst)
+  ;; 5) Reverse a list
   (define (iter lst res)
     (if (null? lst)
 	res
@@ -52,5 +40,25 @@
 (reverse '(a b c d))
 
 (define (palindrome lst)
+  ;; 6) Find out wheher a list is a palindrome.
   (equal? (reverse lst) lst))
 (palindrome '(x a m a x))
+
+(define (my-flatten lst)
+  ;; 7) Flatten a nested list structure.
+  (if (null? lst)
+      '()
+      (let ((first (car lst))
+	    (rest (cdr lst)))
+	(if (pair? first)
+	    (append (my-flatten first)
+		    (my-flatten rest))
+	    (append (list first) 
+		    (my-flatten rest))))))
+
+(my-flatten '(a (b (c d) e)))
+
+(pair? 'a)
+(append '(a) '(b c))
+
+
