@@ -75,18 +75,57 @@
       '()
       (let iter ((from (cdr lst))
 		 (to (list (car lst))))
-	(cond ((null? from) (list to))
-	      ((equal? (car to)
-		       (car from))
-	       (iter (cdr from)
-		     (cons (car from)
-			   to)))
-	      (else
-	       (cons
-		to
+	(cond
+	 ((null? from) (list to))
+	 ((equal? (car to)
+		  (car from))
+	  (iter (cdr from)
+		(cons (car from)
+		      to)))
+	 (else
+	  (cons to
 		(iter (cdr from)
 		      (list (car from)))))))))
 (pack '(a a a a b c c a a d e e e e))
 
+(define (encode lst)
+  ;; 10) Run-length encoding of a list
+  (let iter ((packed (pack lst)))
+    (if (null? packed)
+	'()
+	(cons (list (length (car packed))
+		    (car (car packed)))
+	 (iter (cdr packed))))))
+(encode '(a a a a b c c a a d e e e e))
 
-	    
+(define (encode-modified lst)
+  ;; 11) Modified run-length encoding
+  (let iter ((packed (pack lst)))
+    (cond ((null? packed) '())
+	  ((= (length (car packed)) 1)
+	   (cons (car (car packed))
+		 (iter (cdr packed))))
+	  (else
+	   (cons (list (length (car packed))
+		       (car (car packed)))
+		 (iter (cdr packed)))))))
+(encode-modified '(a a a a b c c a a d e e e e))
+
+(define (decode lst)
+  ;; 12) Decode a run-length encoded list.
+  (define (constructor times symbol)
+    (if (= times 0)
+	'()
+	(cons symbol (constructor (- times 1) symbol))))
+  (define (decode-one encoding)
+    (if (pair? encoding)
+	(constructor (car encoding) (cadr encoding))
+	(list encoding)))
+  (if (null? lst)
+      '()
+      (append (decode-one (car lst))
+	      (decode (cdr lst)))))
+
+(decode '((4 A) B (2 C) (2 A) D (4 E)))
+
+
