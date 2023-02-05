@@ -1306,3 +1306,4 @@
 (length (encode song rock-tree-single)) ;; 106?? why tho?
 (* 3 (length song)) ;; we use 3 bits to encode all 8 symbols
 ;; 108
+
