@@ -178,3 +178,16 @@
 		(append res (list (car xlst)))
 		(+ count 1)))))))
 (repli '(a b c) 3)
+
+(define (drop lst num)
+  ;; 16) Drop every N'th element from a list.
+  (let iter ((xlst lst)
+	     (count 1))
+    (cond ((null? xlst) '())
+	  ((= count num)
+	   (iter (cdr xlst) 1))
+	  (else
+	   (cons (car xlst)
+		 (iter (cdr xlst)
+		       (+ count 1)))))))
+(drop '(a b c d e f g h i k) 3)
