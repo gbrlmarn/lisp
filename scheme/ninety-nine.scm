@@ -128,4 +128,26 @@
 
 (decode '((4 A) B (2 C) (2 A) D (4 E)))
 
+(define (encode-direct lst)
+  ;; 13) Run-length encoding of a list(direct solution)
+  (if (null? lst)
+      '()
+      (let ((format (lambda (counter elem)
+		      (if (= counter 1)
+			  elem
+			  (list counter elem)))))
+	(let iter ((elem (car lst))
+		   (rest (cdr lst))
+		   (counter 1))
+	  (cond
+	   ((null? rest)
+	    (list (format counter elem)))
+	   ((eq? elem (car rest))
+	    (iter elem (cdr rest) (+ counter 1)))
+	   (else
+	    (cons (format counter elem)
+		  (iter (car rest)
+			(cdr rest)
+			1))))))))
+(encode-direct '(a a a a b c c a a d e e e e))
 
