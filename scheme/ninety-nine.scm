@@ -151,3 +151,30 @@
 			1))))))))
 (encode-direct '(a a a a b c c a a d e e e e))
 
+(define (dupli lst)
+  ;; 14) Duplicate the elements of a list
+  (if (null? lst)
+      '()
+      (append (list (car lst)
+		    (car lst))
+	      (dupli (cdr lst)))))
+(dupli '(a b c c d))
+
+(define (repli lst num)
+  ;; 15) Replicate the elements of a list a given number of times
+  (if (null? lst)
+      '()
+      (let iter ((xlst lst)
+		 (res '())
+		 (count 0))
+	(cond
+	 ((null? xlst) res)
+	 ((= count num)
+	  (iter (cdr xlst)
+		res
+		0))
+	 (else
+	  (iter xlst
+		(append res (list (car xlst)))
+		(+ count 1)))))))
+(repli '(a b c) 3)
