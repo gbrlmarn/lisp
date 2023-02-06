@@ -191,3 +191,59 @@
 		 (iter (cdr xlst)
 		       (+ count 1)))))))
 (drop '(a b c d e f g h i k) 3)
+
+(define (split lst at)
+  ;; 17) Split a list into two parts; the length of the first part is given.
+  (let iter ((from lst)
+	     (to '())
+	     (count at))
+    (if (or (null? from)
+	    (zero? count))
+	(list (reverse to) from)
+	(iter (cdr from)
+	      (cons (car from) to)
+	      (- count 1)))))
+(split '(a b c d e f g h i k) 3)
+
+(define (slice lst start stop)
+  ;; 18) Extract a slice from a list
+  (car (split (cadr (split lst (- start 1)))
+	      (- stop (- start 1)))))
+(slice '(a b c d e f g h i k) 3 7)
+
+(define (rotate lst at)
+  ;; 19) Roatate a list N places to the left.
+  (if (< at 0)
+      (reverse (rotate (reverse lst) (- at)))
+      (append (cadr (split lst at))
+	      (car (split lst at)))))
+(rotate '(a b c d e f g h) 3)
+(rotate '(a b c d e f g h) -2)
+
+(define (remove-at lst at)
+  ;; 20) Remove the K'th element from a list.
+  (if (= at 1)
+      (cdr lst)
+      (cons (car lst)
+	    (remove-at (cdr lst)
+		       (- at 1)))))
+(remove-at '(a b c d) 2)
+
+(define (insert-at elem lst at)
+  ;; 21) Insert an element at a give position into a list.
+  (if (= at 1)
+      (cons elem lst)
+      (cons (car lst)
+	    (insert-at elem
+		       (cdr lst)
+		       (- at 1)))))
+(insert-at 'alfa '(a b c d) 2)
+
+(define (range start stop)
+  ;; 22) Create a list containing all integers withing a given range.
+  (if (= start (+ stop 1))
+      '()
+      (cons start
+	    (range (+ start 1)
+		   stop))))
+(range 4 9)
