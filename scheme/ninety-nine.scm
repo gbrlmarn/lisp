@@ -247,3 +247,38 @@
 	    (range (+ start 1)
 		   stop))))
 (range 4 9)
+
+(define (rnd-select lst num)
+  ;; 23) Extract a given number of randomly selected elements from a list
+  (if (zero? num)
+      '()
+      (let ((at (random (length lst))))
+	(cons (list-ref lst at)
+	      (rnd-select (remove-at lst
+				     (+ at 1))
+			  (- num 1))))))
+(rnd-select '(a b c d e f g h) 3)
+
+(define (lotto-select num from)
+  ;; 24) Lotto: Draw N different random numbers from the set 1..M
+  (rnd-select (range 1 from) num))
+(lotto-select 6 49)
+
+(define (rnd-permu lst)
+  ;; 25) Generate a random permutation of the elements of a list.
+  (rnd-select lst (length lst)))
+(rnd-permu '(a b c d e f))
+
+(define (combination num lst)
+  ;; 26) Generate the combinations of K distinct objects chosen from the N elements of a list
+  (cond ((null? lst) '())
+	((= num 1) (map list lst))
+	(else
+	 (append
+	  (map
+	   (lambda (subcomb)
+	     (cons (car lst) subcomb))
+	   (combination (- num 1) (cdr lst)))
+	  (combination num (cdr lst))))))
+(combination 3 '(a b c d e f))
+
