@@ -282,7 +282,38 @@
 	  (combination num (cdr lst))))))
 (combination 3 '(a b c d e f))
 
-(define (group3 lst)
+(define (group lst form)
   ;; 27) Group the elements of a set into disjoint subsets
-  ;; a) In how many ways can a group of 9 people work in 3 disjoint subgroups 2, 3 and 4 persons? Write a function that generates all the posibilities and returns them in a list.
-  )
+  (define (iter res lst form)
+    (cond ((null? form) res)
+	  ((null? res) '())
+	  (else
+	   (let* ((first-res (car res))
+		  (rest
+		   (filter
+		    (lambda (elem)
+		      (not
+		       (member elem first-res)))
+		    lst)))
+	     (append
+	      (map (lambda (rest-res)
+		     (list first-res
+			   rest-res))
+		   (iter (combination (car form)
+				      rest)
+			 rest
+			 (cdr form)))
+	      (iter (cdr res) lst form))))))
+  (iter (combination (car form) lst)
+	lst
+	(cdr form)))
+
+(group '(aldbo beat carla david
+	       evi flip gary
+	       hugo ida)
+       '(2 2 5))
+
+(define (group3 lst)
+  ;;  a) In how many ways can a group of 9 people work in 3 disjoint subgroups of 2, 3 and 4 persons? Write a function that generates all the possibilities and returns them in a list.
+  (group lst '(2 3 4)))
+(group3 '(aldo beat carla david evi flip gary hugo ida))
