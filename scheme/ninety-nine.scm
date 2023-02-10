@@ -317,3 +317,33 @@
   ;;  a) In how many ways can a group of 9 people work in 3 disjoint subgroups of 2, 3 and 4 persons? Write a function that generates all the possibilities and returns them in a list.
   (group lst '(2 3 4)))
 (group3 '(aldo beat carla david evi flip gary hugo ida))
+
+(define (sort lst p)
+  ;; 28) Sorting a list of lists according to length of sublists
+  (cond ((null? lst) '())
+	((null? (cdr lst)) lst)
+	(else
+	 (let* ((left
+		 (filter (lambda (x)
+			   (p x (car lst)))
+			 (cdr lst)))
+		(right
+		 (filter (lambda (x)
+			   (not (p x (car lst))))
+			 (cdr lst))))
+	   (append (sort left p)
+		   (list (car lst))
+		   (sort right p))))))
+
+(define (lsort lst)
+  ;; a) We suppose that a list contains elements that are lists themselves. The objective is to sort the elements of this list according to their length. E.g. short lists first, longer lists later, or vice versa.
+  (sort lst (lambda (x y)
+	      (< (length x) (length y)))))
+(lsort '((a b c) (d e) (f g h) (d e) (i j k l) (m n) (o)))
+
+(define (lfsort xss)
+  ;; b) Again, we suppose that a list contains elements that are lists themselves. But this time the objective is to sort the elements of this list according to their length frequency; i.e., in the default, where sorting is done ascendingly, lists with rare lengths are placed first, others with a more frequent length come later.
+  
+)
+
+(lfsort '((a b c) (d e) (f g h) (d e) (i j k l) (m n) (o)))
