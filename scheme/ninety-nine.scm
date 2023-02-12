@@ -384,3 +384,19 @@
   (iter x 1 0))
 (totient-phi 10)
 
+(define (prime-factors prod)
+  ;; 33) Determine the prime factors of a given positive integer.
+  (define (iter prod count)
+    (cond ((= prod 1) '())
+	  ((and (= (modulo prod count) 0)
+		(is-prime count))
+	   (cons count
+		 (iter (quotient prod count)
+		       2)))
+	  (else
+	   (iter prod
+		 (+ count 1)))))
+  (iter prod 2))
+(prime-factors 315)
+
+
