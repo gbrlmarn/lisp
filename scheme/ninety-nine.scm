@@ -341,9 +341,46 @@
 	      (< (length x) (length y)))))
 (lsort '((a b c) (d e) (f g h) (d e) (i j k l) (m n) (o)))
 
-(define (lfsort xss)
+(define (lfsort lst)
   ;; b) Again, we suppose that a list contains elements that are lists themselves. But this time the objective is to sort the elements of this list according to their length frequency; i.e., in the default, where sorting is done ascendingly, lists with rare lengths are placed first, others with a more frequent length come later.
-  
-)
+  )
 
 (lfsort '((a b c) (d e) (f g h) (d e) (i j k l) (m n) (o)))
+
+;; Arithmetic
+
+(define (is-prime num)
+   ;; 29) Determine whether a given integer number is prime
+  (if (<= num 1)
+      #f
+      (let iter ((test (- num 1)))
+	(if (eq? test 1)
+	    #t
+	    (and (not (eq? (modulo num test)
+			   0))
+		 (iter (- test 1)))))))
+(is-prime 7)
+
+(define (gcd x y)
+  ;; 30) Determine the greatest common divisor of two positive integers numbers.
+  (if (= y 0) x
+      (gcd y (modulo x y))))
+(gcd 36 63)
+
+(define (coprime x y)
+  ;; 31) Determine wheter two positive integers numbers are coprime
+  (= (gcd x y) 1))
+(coprime 35 64)
+
+(define (totient-phi x)
+  ;; 32) Calculate Euler's totient function phi(m)
+  (define (iter x y count)
+    (cond ((= x 1) 1)
+	  ((= x y) count)
+	  ((= (gcd x y) 1)
+	   (iter x (+ y 1) (+ count 1)))
+	  (else
+	   (iter x (+ y 1) count))))
+  (iter x 1 0))
+(totient-phi 10)
+
