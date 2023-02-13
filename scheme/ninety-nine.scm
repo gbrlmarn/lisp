@@ -399,4 +399,18 @@
   (iter prod 2))
 (prime-factors 315)
 
-
+(define (prime-factors-mult prod)
+  ;; 34) Determine the prime factors of a given positive integers (2).
+  (let ((fs (prime-factors prod)))
+    (let iter ((first (car fs))
+	       (rest (cdr fs))
+	       (count 1))
+      (cond ((null? rest)
+	     (list (list first count)))
+	    ((eq? first (car rest))
+	     (iter first (cdr rest) (+ count 1)))
+	    (else
+	     (cons (list first count)
+		   (iter (car rest)
+			 (cdr rest) 1)))))))
+(prime-factors-mult 315)
