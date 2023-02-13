@@ -414,3 +414,17 @@
 		   (iter (car rest)
 			 (cdr rest) 1)))))))
 (prime-factors-mult 315)
+
+(define (totient-phi-improved x)
+  ;; 35) Calculate Euler's totient function phi(m) (improved).
+  (let iter ((fs (prime-factors-mult x))
+	     (res 1))
+    (if (null? fs)
+	res
+	(iter
+	 (cdr fs)
+	 (* res (* (- (caar fs) 1)
+		   (expt (caar fs)
+			 (- (cadar fs) 1))))))))
+(totient-phi 10)
+(totient-phi-improved 10)
