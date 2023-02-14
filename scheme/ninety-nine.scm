@@ -429,3 +429,35 @@
 (totient-phi 10)
 (totient-phi-improved 10)
 
+;; 36) Compare the two methods of calculating Euler's totient function.
+(totient-phi 10090)
+(totient-phi-improved 10090)
+
+(define (range-primes from to)
+  ;; 37) A list of primes numbers
+  (filter is-prime (range from to)))
+(range-primes 1 100)
+
+(define (goldbach num)
+  (let iter ((from (range-primes 1 num)))
+    (cond
+     ((null? from) num)
+     ((is-prime (- num (car from)))
+      (list (car from) (- num (car from))))
+	(else
+	 (iter (cdr from))))))
+(goldbach 28)
+
+(define (goldbach-list from to greater)
+  ;; 38) A list of Goldbach compositions.
+  (filter
+   (lambda (x) (> (car x) greater))
+   (filter pair?
+	   (map goldbach (range from to)))))
+(goldbach-list 1 2000 50)
+
+
+
+
+
+
