@@ -350,7 +350,7 @@
 ;; Arithmetic
 
 (define (is-prime num)
-   ;; 29) Determine whether a given integer number is prime
+   ;; 31) Determine whether a given integer number is prime
   (if (<= num 1)
       #f
       (let iter ((test (- num 1)))
@@ -362,18 +362,18 @@
 (is-prime 7)
 
 (define (gcd x y)
-  ;; 30) Determine the greatest common divisor of two positive integers numbers.
+  ;; 32) Determine the greatest common divisor of two positive integers numbers.
   (if (= y 0) x
       (gcd y (modulo x y))))
 (gcd 36 63)
 
 (define (coprime x y)
-  ;; 31) Determine wheter two positive integers numbers are coprime
+  ;; 33) Determine wheter two positive integers numbers are coprime
   (= (gcd x y) 1))
 (coprime 35 64)
 
 (define (totient-phi x)
-  ;; 32) Calculate Euler's totient function phi(m)
+  ;; 34) Calculate Euler's totient function phi(m)
   (define (iter x y count)
     (cond ((= x 1) 1)
 	  ((= x y) count)
@@ -385,7 +385,7 @@
 (totient-phi 10)
 
 (define (prime-factors prod)
-  ;; 33) Determine the prime factors of a given positive integer.
+  ;; 35) Determine the prime factors of a given positive integer.
   (define (iter prod count)
     (cond ((= prod 1) '())
 	  ((and (= (modulo prod count) 0)
@@ -400,7 +400,7 @@
 (prime-factors 315)
 
 (define (prime-factors-mult prod)
-  ;; 34) Determine the prime factors of a given positive integers (2).
+  ;; 36) Determine the prime factors of a given positive integers (2).
   (let ((fs (prime-factors prod)))
     (let iter ((first (car fs))
 	       (rest (cdr fs))
@@ -416,7 +416,7 @@
 (prime-factors-mult 315)
 
 (define (totient-phi-improved x)
-  ;; 35) Calculate Euler's totient function phi(m) (improved).
+  ;; 37) Calculate Euler's totient function phi(m) (improved).
   (let iter ((fs (prime-factors-mult x))
 	     (res 1))
     (if (null? fs)
@@ -429,35 +429,50 @@
 (totient-phi 10)
 (totient-phi-improved 10)
 
-;; 36) Compare the two methods of calculating Euler's totient function.
+;; 38) Compare the two methods of calculating Euler's totient function.
 (totient-phi 10090)
 (totient-phi-improved 10090)
 
 (define (range-primes from to)
-  ;; 37) A list of primes numbers
+  ;; 39) A list of primes numbers
   (filter is-prime (range from to)))
 (range-primes 1 100)
 
 (define (goldbach num)
+  ;; 40) Goldbach's conjecture.
   (let iter ((from (range-primes 1 num)))
     (cond
      ((null? from) num)
      ((is-prime (- num (car from)))
       (list (car from) (- num (car from))))
-	(else
-	 (iter (cdr from))))))
+     (else
+      (iter (cdr from))))))
 (goldbach 28)
 
 (define (goldbach-list from to greater)
-  ;; 38) A list of Goldbach compositions.
+  ;; 41) A list of Goldbach compositions.
   (filter
    (lambda (x) (> (car x) greater))
    (filter pair?
 	   (map goldbach (range from to)))))
 (goldbach-list 1 2000 50)
 
+;; Logic and Codes
 
+;; 46) 47) 48) Truth tables for logical expressions.
 
-
-
+(define (gray n)
+  ;; 49) Gray code.
+  (cond ((= n 0) '())
+	((= n 1) '("0" "1"))
+	(else
+	 (let ([next (gray (- n 1))])
+	   (append
+	    (map (lambda (s)
+		   (string-append "0" s))
+		 next)
+	    (map (lambda (s)
+		   (string-append "1" s))
+		 next))))))
+(gray 3)
 
