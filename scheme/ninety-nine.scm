@@ -461,12 +461,12 @@
 
 ;; 46) 47) 48) Truth tables for logical expressions.
 
-(define (gray n)
+(define (gray x)
   ;; 49) Gray code.
-  (cond ((= n 0) '())
-	((= n 1) '("0" "1"))
+  (cond ((= x 0) '())
+	((= x 1) '("0" "1"))
 	(else
-	 (let ([next (gray (- n 1))])
+	 (let ([next (gray (- x 1))])
 	   (append
 	    (map (lambda (s)
 		   (string-append "0" s))
@@ -475,4 +475,21 @@
 		   (string-append "1" s))
 		 next))))))
 (gray 3)
+
+(define (huffman x)
+  ;; 50) Huffman code.
+)
+(huffman '((a 45) (b 13)
+	   (c 12) (d 16)
+	   (e 9) (f 5)))
+
+(define (istree object)
+  ;; 54A) Check wheater a given expression represents a binary tree
+  (cond
+   ((null? object) #t)
+   ((not (= (length object) 3)) #f)
+   (else
+    (and (istree (cadr object))
+	 (istree (caddr object))))))
+(istree '(a (b () ()) ()))
 
