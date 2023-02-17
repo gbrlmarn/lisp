@@ -493,3 +493,13 @@
 	 (istree (caddr object))))))
 (istree '(a (b () ()) ()))
 
+(define (count-leaves tree)
+  ;; 61) Count the leaves of a binary tree
+  (cond ((null? tree) 0)
+	((and (null? (cadr tree))
+	      (null? (caddr tree))) 1)
+	(else
+	 (+ (count-leaves (cadr tree))
+	    (count-leaves (caddr tree))))))
+(count-leaves '(a (b () ()) (c () ())))
+
