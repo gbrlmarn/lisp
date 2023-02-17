@@ -501,5 +501,16 @@
 	(else
 	 (+ (count-leaves (cadr tree))
 	    (count-leaves (caddr tree))))))
-(count-leaves '(a (b () ()) (c () ())))
+(count-leaves '(a (b () ()) (c (d () ()) (e () ()))))
+
+(define (leaves tree)
+  ;; 61A) Collect the leaves of a binary tree in a list
+  (cond ((null? tree) '())
+	((and (null? (cadr tree))
+	      (null? (caddr tree)))
+	 (list (car tree)))
+	(else
+	 (append (leaves (cadr tree))
+	       (leaves (caddr tree))))))
+(leaves '(a (b () ()) (c (d () ()) (e () ()))))
 

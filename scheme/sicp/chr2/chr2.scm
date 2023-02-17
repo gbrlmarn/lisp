@@ -1247,7 +1247,7 @@
   (if (leaf? tree)
       (if (eq? symbol (symbol-leaf tree))
 	  '()
-	  (error "Missing symbol: " sym))
+	  (error "Missing symbol: " symbol))
       (let ((left (left-branch tree)))
 	(if (memq symbol (symbols left))
 	    (cons 0 (encode-symbol symbol left))
