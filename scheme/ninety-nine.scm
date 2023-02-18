@@ -514,3 +514,51 @@
 	       (leaves (caddr tree))))))
 (leaves '(a (b () ()) (c (d () ()) (e () ()))))
 
+(define (internals tree)
+  ;; 62) Collect the internal nodes of a binary tree in a list
+  (if (or (null? tree)
+	  (and (null? (cadr tree))
+	       (null? (caddr tree))))
+      '()
+      (append (list (car tree))
+	      (internals (cadr tree))
+	      (internals (caddr tree)))))
+(internals '(a (b () ()) (c (d () ()) (e () ()))))
+
+(define (atlevel tree L)
+  ;; 62B) Collect the nodes at a given level in a list
+  (cond ((null? tree) '())
+	((= L 0) (list (car tree)))
+	(else
+	 (append (atlevel (cadr tree)
+			  (- L 1))
+		 (atlevel (caddr tree)
+			  (- L 1))))))
+(atlevel '(a (b () ()) (c (d () ()) (e () ()))) 2)
+
+(define (complete-binary-tree N)
+  ;; 63) Construct a complete binary tree
+  (define (iter N count sym)
+    (when (<= count N)
+      (list sym
+	    (iter N (* count 2) sym)
+	    (iter N (+ 1 (* count 2)) sym))))
+  (iter N 1 'X))
+(complete-binary-tree 5)
+
+;; Multiway Trees
+(define (atom? expr)
+  (and (not (pair? expr)) (not (null? expr))))
+(define (istree expr)
+  ;; 70B) Check wheather a given expression represents a multiway tree
+  (or (atom? expr)
+      (and
+       (pair? expr)
+       (>= (length expr) 2)
+       (atom? (car expr))
+       (alltree (cdr expr)))))
+(define (alltree tree)
+  (or (null? tree)
+      (and (istree (car tree))
+	   (alltree (cdr tree)))))
+(istree '(a (f g) c (b d e)))
