@@ -75,3 +75,7 @@
   (lambda (x) (+ x x)))
 double
 (double 2)
+
+(use-module local-eval)
+(local-eval '(+ 1 2) )
+

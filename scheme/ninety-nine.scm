@@ -561,4 +561,4 @@
   (or (null? tree)
       (and (istree (car tree))
 	   (alltree (cdr tree)))))
-(istree '(a (f g) c (b d e)))
+ (istree '(a (f g) c (b d e)))
