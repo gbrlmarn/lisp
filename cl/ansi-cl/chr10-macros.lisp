@@ -109,3 +109,40 @@
 	 ((> ,var ,gstop))
        ,@body)))
 (for x 1 9 (princ x))
+
+(defmacro avg (&rest args)
+  `(/ (+ ,@args) ,(length args)))
+
+(avg 1 2 3 4 5 6 7)
+
+(defmacro with-gensym (syms &body body)
+  `(let ,(mapcar)))
+
+;; Exercises
+
+;; 1. If x is a, y is b, and z is (c d),
+;; write backquoated expressions
+;; containing only variables that yield
+;; each of the following
+;; (a) ((C D) A Z)
+;; (b) (X B C D)
+;; (c) ((C D A) Z)
+(let ((x 'a)
+      (y 'b)
+      (z '(c d)))
+  `((,z ,x z)
+    (x ,y ,@z)
+    ((,@z ,x) z)))
+
+;; 2. Define if in term of cond.
+(defmacro cif (test then else)
+  `(cond
+     (,test ,then)
+     (t ,else)))
+
+;; 3. Define a macro that takes a number
+;; followed by one or more expressions,
+;; and returns the value of the nth
+;; expression:
+
+
