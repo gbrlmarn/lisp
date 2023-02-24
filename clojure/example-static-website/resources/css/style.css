@@ -10,3 +10,12 @@ body {
     margin-top: 10px;
     margin-bottom: 10px;
 }
+
+header {
+    overflow: hidden;
+    max-width: 600px;
+    margin-top: 0.5em;
+    margin-bottom: 2em;  
+    font-size: 1.15rem;  
+    border-bottom: 1px solid black;  
+}
