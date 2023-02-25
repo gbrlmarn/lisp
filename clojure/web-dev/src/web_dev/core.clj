@@ -41,7 +41,7 @@
 (comp/defroutes routes
   (comp/GET "/" []
     {:status 200
-     :body "<h1>Homepage</h1>
+     :body "<h1>Gabriel Marin</h1>
 <ul>
 <li><a href=\"/echo\">Echo request</a></li>
 <li><a href=\"greeting\">Greeting</a></li>
@@ -59,15 +59,18 @@
                     :body "Not found."
                     :header {"Content-Type" "text/plain"}}))
 
-(def app routes)
+;; Middleware stack
+(def app
+  (-> (fn [req] (routes req))
+      wrap-keyword-params
+      wrap-params))
 
 ;; Start the server and save it in the atom
 (defn start-server []
-  (reset! server
+  (reset! server ;; 'reset!' vs 'swap!'
           #_(aleph/start-server
              (fn [req] (app req))
              {:port 3001})
-          assoc
           (jetty/run-jetty
            (fn [req] (app req))
            {:port 3001
@@ -79,7 +82,6 @@
     ;;(.close s) ;; aleph stop method
     (.stop s) ;; call the stop method 
     (reset! server nil))) ;; overwrite the atom with nil
-
 
 
 ;;;;;;;;;;;;;;;;;;;;
