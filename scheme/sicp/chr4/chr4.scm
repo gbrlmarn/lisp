@@ -9,6 +9,71 @@
 ;; meaning of expresions in a programming
 ;; language, is just another program."
 
+;; Definition of eval:
+(define (my-eval exp env)
+  (cond ((self-evaluating? exp) exp)
+	((variable? exp)
+	 (lookup-varialle-value exp env))
+	((assignment? exp)
+	 (eval-assignment exp env))
+	((definition? exp)
+	 (eval-definition exp env))
+	((if? exp) (eval-if exp env))
+	((lambda? exp)
+	 (make-procedure (lambda-parameters exp)
+			 (lambda-body exp)
+			 env))
+	((begin? exp)
+	 (eval-sequence (begin-actions exp) env))
+	((cond? exp) (eval (cond-if exp) env))
+	((application? exp)
+	 (apply (eval (operator exp) env)
+		(list-of-values (operands exp) env)))
+	(else
+	 (error "Unknown expression type: EVAL" exp))))
+
+;; Apply
+(define (my-apply procedure arguments)
+  (cond ((primitive-procedure? procedure)
+	 (apply-primitive-procedure procedure arguments))
+	((compound-procedure? procedure)
+	 (eval-sequence
+	  (procedure-body procedure)
+	  (extend-environment
+	   (procedure-parameters procedure)
+	   arguments
+	   (procedure-environment procedure))))
+	(else
+	 (error
+	  "Unknown procedure type: APPLY" procedure))))
+
+;; Conditionals
+(define (eval-if exp env)
+  (if (true? (my-eval (if-predicate exp) env))
+      (my-eval (if-consequent exp) env)
+      (my-eval (if-alternative exp) env)))
+
+;; Sequences
+(define (eval-sequence exps env)
+  (cond ((last-exp? exps)
+	 (my-eval (first-exp exps) env))
+	(else
+	 (my-eval (first-exp exps) env)
+	 (eval-sequence (rest-exps exps) env))))
+
+;; Assignments and definitions
+(define (eval-assignment exp env)
+  (set-variable-value!
+   (assignment-variable exp)
+   (my-eval (assignment-value exp) env)
+   env)
+  'ok)
+(define (eval-definition exp env)
+  (define-variable!
+    (definition-variable exp)
+    (eval (definition-value exp) env)
+    env)
+  'ok)
 
 ;; 4.1
 ;; Clasic version
@@ -41,6 +106,7 @@
 
 (append '(a) '(b c))
 (cons '(a) '(b c))
+
 
 ;; 4.1.2 Representing Expressions
 (define false #f)
@@ -225,41 +291,21 @@
 	(else (make-begin seq))))
 (cond-if cond-exp)
 
-;; Definition of eval:
-(define (my-eval exp env)
-  (cond ((self-evaluating? exp) exp)
-	((variable? exp)
-	 (lookup-varialle-value exp env))
-	((assignment? exp)
-	 (eval-assignment exp env))
-	((definition? exp)
-	 (eval-definition exp env))
-	((if? exp) (eval-if exp env))
-	((lambda? exp)
-	 (make-procedure (lambda-parameters exp)
-			 (lambda-body exp)
-			 env))
-	((begin? exp)
-	 (eval-sequence (begin-actions exp) env))
-	((cond? exp) (eval (cond-if exp) env))
-	((application? exp)
-	 (apply (eval (operator exp) env)
-		(list-of-values (operands exp) env)))
-	(else
-	 (error "Unknown expression type: EVAL" exp))))
 
-;; Apply
-(define (my-apply procedure arguments)
-  (cond ((primitive-procedure? procedure)
-	 (apply-primitive-procedure procedure arguments))
-	((compound-procedure? procedure)
-	 (eval-sequence
-	  (procedure-body procedure)
-	  (extend-environment
-	   (procedure-parameters procedure)
-	   arguments
-	   (procedure-environment procedure))))
-	(else
-	 (error
-	  "Unknown procedure type: APPLY" procedure))))
+;; 4.2
+
+ ;; a) Assignment expressions are technically pairs and will be evaluated as applications. Evaluating an assignment as an application will cause the evaluator to try to evaluate the assignment variable instead of treating it as a symbol. 
+
+;; a) Assignment expressions are pairs and
+;;    will be evaluated as applications.
+;;    Evaluating assignments as applications
+;; b)
+(define (application? exp)
+  (tagged-list? exp 'call))
+(define (operator exp) (cadr exp))
+(define (operands exp) (cddr exp))
+
+(define test-module (module-gensym))
+(eval (+ 2 2) (interaction-environment))
+(apply + '(1 2 3))
 
