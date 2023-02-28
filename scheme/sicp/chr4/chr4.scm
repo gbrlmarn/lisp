@@ -309,3 +309,35 @@
 (eval (+ 2 2) (interaction-environment))
 (apply + '(1 2 3))
 
+(define (new-eval exp env)
+  ;; 4.3 Rewrite eval so that the dispatch is done in data-directed style...
+  (cond ((self-evaluating? exp) exp)
+	((variable? exp) (lookup-variable-value exp env))
+	((assq (car exp) eval-rules)
+	 => (lambda (type-rule-pair)
+	      ((cdr type-rule-pair) exp env)))
+	((application? exp)
+	 (apply (eval (operator exp) env)
+		(list-of-values (operands exp)
+				env)))
+	(else
+	 (error "Unknown expression type -- EVAL" exp))))
+
+(define eval-rules
+  (list
+   (cons 'quote (lambda (exp env) (text-of-quotation exp)))
+   (cons 'set! eval-assignment)
+   (cons 'define eval-definition)
+   (cons 'if eval-if)
+   (cons 'lambda
+	 (lambda (exp env)
+	   (make-procedure
+	    (lambda-parameters exp)
+	    (lambda-body exp)
+	    env)))
+   (cons 'begin
+	 (lambda (exp env)
+	   (eval-sequence (begin-actions exp)
+			  env)))
+   (cons 'cond (lambda (exp env)
+		 (eval (cond->if exp) env)))))
