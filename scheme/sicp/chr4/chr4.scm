@@ -341,3 +341,26 @@
 			  env)))
    (cons 'cond (lambda (exp env)
 		 (eval (cond->if exp) env)))))
+
+
+(define (eval-and exps env)
+  ;; 4.4 eval-and and eval-or.
+  (cond
+   ((no-predicates? exps) true)
+   ((not (true? (eval (first-predicate exps)
+		      env))) false)
+   (else (eval-and (rest-predicates exps) env))))
+
+(define (no-predicates? exps) (null? exps))
+(define (true? exp) (eq? exp #t))
+(define (first-predicate exp) (car exp))
+(define (rest-predicates exp) (cdr exp))
+
+(define (eval-or exps env)
+  (cond
+   ((no-predicates? exps) false)
+   ((true? (eval (first-predicate exps) env))
+    true)
+   (else
+    (eval-or (rest-predicates exps) env))))
+
