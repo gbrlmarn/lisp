@@ -364,3 +364,42 @@
    (else
     (eval-or (rest-predicates exps) env))))
 
+(define (expand-clauses clauses)
+  ;; 4.5 ...Modify the handling of cont so that it supports (<test> => <recipient>)
+  (if (null? clauses)
+      'false
+      (let ((first (car clauses))
+	    (rest (cdr clauses)))
+	(if (cond-else-clause? first)
+	    (if (null? rest)
+		(sequence->exp
+		 (cond-actions first))
+		(error "ELSE clause isn't last: COND->IF" clauses))
+	    (if (eq? (car (cond-actions first))
+		     '=>)
+		(make-if
+		 (cond-predicate first)
+		 (list
+		  (cadr (cond-actions first))
+		  (cond-predicate first))
+		 (expand-claouses rest env))
+		(make-if
+		 (cond-predicate first)
+		 (sequence->exp
+		  (cond-actions first))
+		 (expand-clauses rest env)))))))
+
+(define (let->combination expr)
+  ;; 4.6 Implement a syntactic transformation let->combination 
+  (list (make-lambda (let-vars expr)
+		     (let-body expr))
+	(let-inits expr)))
+(define (make-lambda params body)
+  (cons 'lambda (cons params body)))
+(define (let-vars exp) (map car (cadr exp)))
+(define (let-body exp) cddr exp)
+(define (let-inits exp) (map cadr (cadr exp)))
+
+
+
+
