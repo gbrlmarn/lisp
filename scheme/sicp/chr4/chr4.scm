@@ -455,3 +455,34 @@
 	(cons (named-let-func-name expr)
 	      (named-let-func-params expr))
 	(named-let-func-body expr)))
+
+;; 4.9 Implement while, do, until. While form is (while <predicate> <body>)
+(define (while? expr)
+  (tagged-list? (car expr) 'while))
+(define (while-predicate expr) (cadr expr))
+(define (while-body expr) (caddr expr))
+(define (eval-while expr env)
+  (let ((pred (while-predicate expr))
+	(body (while-body expr)))
+    (eval
+     (make-if pred
+	      (sequence->exp (list body expr))
+	      "done")
+     env)))
+(define (make-if pred conseq alt)
+  (list 'if pred conseq alt))
+(define (tagged-list? lst tag)
+  (if (pair? lst)
+      (eq? (car lst) tag)
+      false))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; I like this              ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(let ((a 0)		    ;;
+      (res '()))	    ;;
+  (while (< a 10)	    ;;
+    (set! res (cons a res)) ;;
+    (set! a (+ a 1)))	    ;;
+  (reverse res))            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
