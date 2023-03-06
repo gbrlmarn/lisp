@@ -656,3 +656,23 @@
   (env-loop var val env 'define-variable!))
 (define (set-variable-value! var val env)
   (env-loop var val env 'set-variable-value!))
+
+;; 4.13: Scheme allows us to create new bindings for variables by means of define, but provides no way to get rid of bindings. Implement for the evaluator a special form make-unbound! that removes the bidings of a given symbol from the environment in which the make-unbound! expresion is evaluated. This problem is not completely specified. For example, should we remove only
+(define (make-unbound! var env)
+  (let* ((frame (first-frame env))
+	 (vars (frame-variables frame))
+	 (vals (frame-values frame)))
+    (define (scan vars vals new-vars new-vals)
+      (cond ((null? vars)
+	     (error "Variable not found: " var))
+	    ((eq? var (car vars))
+	     (set! frame
+		   (cons
+		    (append new-vars (cdr vars))
+		    (append new-vals (cdr vals)))))
+	    (else
+	     (scan (cdr vars) (cdr vals)
+		   (cons (car vars) new-vars)
+		   (cons (car vals) new-vals)))))
+    (scan vars vals '() '())))
+
