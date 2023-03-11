@@ -703,8 +703,9 @@
   (even? x))
 ;; Fill in the missing expressions to complete an alternative definition of f, which uses neighter internal definitions nor letrec:
 (define (f x)
-  ((lambda (even? odd?) (even? even? odd? x))
+  ((lambda (even? odd?)
+     (even? even? odd? x))
    (lambda (ev? od? n)
-     (if (= n 0) true (ev? od? (- n 1))))
+     (if (= n 0) true (od? ev? od? (- n 1))))
    (lambda (ev? od? n)
-     (if (= n 0) false (ev? od?am (- n 1))))))
+     (if (= n 0) false (ev? ev? od? (- n 1))))))
