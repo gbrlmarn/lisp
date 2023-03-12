@@ -788,4 +788,21 @@
 ;; For a quoted expression, we can gain a little efficiency by extracting the text of the quotation only once, in the analysis phase, rathen than in the execution phase
 (define (analyze-quoted exp)
   (let ((qval (text-of-quotation exp)))
-    (lambda (env) qval)))a
+    (lambda (env) qval)))
+
+;; assignment-value expression can be analyzed(recursively) during analysis is a major gain in efficiency, because the assignment-value expression will now be analyzed only once. The same holds true for definitions.
+
+
+;; 4.2 Variations on a Scheme - Lazy Evaluation
+
+;; 4.2.1 Normal Order and Applicative Order
+;; Scheme is an applicative-order language, namely, that all arguments to Scheme procedures are evaluated when the procedure is applied. In contrast, normal-order languages delay evaluation of procedure until the actual arguments values are needed. Delaying evaluation of procedure arguments until the last possible moment is called lazy evaluation.
+(define (try a b) (if (= a 0) 1 b))
+(try 0 (/ 1 0))
+
+(define (fact x)
+  (unless (= x 1)
+    (* x (fact (- x 1)))
+    1))
+(fact 5)
+
