@@ -709,3 +709,83 @@
      (if (= n 0) true (od? ev? od? (- n 1))))
    (lambda (ev? od? n)
      (if (= n 0) false (ev? ev? od? (- n 1))))))
+
+;;;;;;;;;;;;;;;;;;;;
+;; Playing around ;;
+;;;;;;;;;;;;;;;;;;;;
+;; y-combinator
+(define Y
+  (lambda (f)
+    ((lambda (x) (x x))
+     (lambda (x) (f (lambda (y) ((x x) y)))))))
+(define fact-once
+  (lambda (f)
+    (lambda (n)
+      (if (= n 0)
+	  1
+	  (* n (f (- n 1)))))))
+(define factorial (Y fact-once))
+(factorial 20)
+
+(define Y
+  (lambda (f)
+    ((lambda (x) (x x))
+     (lambda (x) (f (lambda (y) ((x x) y)))))))
+
+(define my-counter
+  (let ((counter 0))
+    (lambda ()
+      (set! counter (+ counter 1))
+      counter)))
+(my-counter)
+
+(define (make-counter)
+  (let ((counter 0))
+    (lambda ()
+      (set! counter (+ counter 1))
+      counter)))
+(define make-counter
+  (lambda ()
+    (let ((counter 0))
+      (lambda ()
+	(set! counter (+ counter 1))
+	counter))))
+(define c1 (make-counter))
+(define c2 (make-counter))
+(c1)
+(c2)
+;;;;;;;;;;
+;; Done ;;
+;;;;;;;;;;
+
+;; 4.1.7 Separating Syntactic Analysis from Execution
+
+;; With the separation into analysis and execution, eval now becomes
+(define (my-eval exp env) ((analyze exp) env))
+
+;; The procedure that we dispatch performs only analysis, not full evaluation:
+(define (analyze exp)
+  (cond (self-evaluating? exp)
+	(analyze-self-evaluating exp)
+	((quoated? exp) (analyze-quoted exp))
+	((variable? exp) (analyze-variable exp))
+	((definition? exp)
+	 (analyze-definition exp))
+	((if? exp) (analyze-if exp))
+	((lambda? exp) (analyze-lambda exp))
+	((begin? exp)
+	 (analyze-sequence (begin-actions exp)))
+	((cond? exp) (analyze (cond->if exp)))
+	((application? exp)
+	 (analyze-application exp))
+	(else
+	 (error "Unknown expression type: ANALYZE" exp))))
+
+;; Here is the simplest analysis procedure, which handles selfevaluating expressions. It returns an execution procedure that ignores its environment argument and just returns the expression 
+(define (analyze-self-evaluating exp)
+  (lambda (env) exp))
+
+;; For a quoted expression, we can gain a little efficiency by extracting the text of the quotation only once, in the analysis phase, rathen than in the execution phase
+(define (analyze-quoted exp)
+  (let ((qval (text-of-quotation exp)))
+    (lambda (env) qval)))a
