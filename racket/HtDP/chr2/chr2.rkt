@@ -50,3 +50,14 @@
 	 "square")
 	(else (error "Cannot classify the image" image))))
 (image-classify test-cube)
+
+;; Exercise 18. Define the function string-join, which consumes two string and appends them with "_" in between. See exercise 2 for ideas.
+(define (string-join str1 str2)
+  (string-append str1 "_" str2))
+(string-join "miky" "tauru")
+
+
+;; Exercise 19. Define the function string-insert, which consumes a string str plus a number i and inserts "_" at the ith position of str. Assume i is a number between 0 and the length of a given string(inclusive).
+(define (string-insert str i)
+  ()
+  
