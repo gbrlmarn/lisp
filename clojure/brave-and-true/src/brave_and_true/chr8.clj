@@ -99,3 +99,166 @@
 `(+ ~@(list 1 2 3))
 
 ;; Variable Capture
+(def message "Good job")
+(defmacro with-mischief
+  [& stuff-to-do]
+  (concat (list 'let ['message "Oh, big deal!"])
+          stuff-to-do))
+(with-mischief
+  (println "Here's how I feel about that thing you did: "
+           message))
+;; The macro creates new binding to message
+(defmacro with-mischief
+  [& stuff-to-do]
+  `(let [message "Oh, big deal!"]
+     ~@stuff-to-do))
+(with-mischief
+  (println "Here's how I feel about that thing you did: "
+           message))
+
+;; Gensym produces unique symbols and prevents variable capture
+(gensym)
+(gensym 'message)
+
+;; without-mischief using gensym
+(defmacro without-mischief
+  [& stuff-to-do]
+  (let [macro-message (gensym 'message)]
+    `(let [~macro-message "Oh, big deal!"]
+       ~@stuff-to-do
+       (println "I still need to say: " ~macro-message))))
+(without-mischief
+  (println "Here's how I feel about that thing you did: "
+           message))
+
+;; Autogensym
+`(blarg# bluez#)
+`(let [name# "Laryy Potter"] name#)
+
+;; Double evaluation
+(defmacro report
+  [to-try]
+  `(if ~to-try
+     (println (quote ~to-try) "was successful:" ~to-try)
+     (println (quote ~to-try) "was not successful:" ~to-try)))
+(report (+ 1 1))
+(macroexpand
+ '(report (do (Thread/sle 1000) (+ 1 1))))
+
+;; Put 'to-try' in a let expression and eval only once
+(defmacro report
+  [to-try]
+  `(let [result# ~to-try]
+     (if result#
+       (println (quote ~to-try) "was successful:" result#)
+       (println (quote ~to-try) "was not successful:" result#))))
+
+(report (= 1 1))
+(report (= 1 2))
+(doseq [code ['(= 1 1) '(= 1 2)]]
+  (report code))
+
+(macroexpand
+ '(doseq [code ['(= 1 1) '(= 1 2)]]
+    (report code)))
+
+(defmacro doseq-macro
+  [macroname & args]
+  `(do
+     ~@(map (fn [arg] (list macroname arg)) args)))
+(doseq-macro report (= 1 1) (= 1 2))
+(macroexpand
+ '(doseq-macro report (= 1 1) (= 1 2)))
+
+;; Macros in practice
+(def order-details
+  {:name "mitcard Blimmons"
+   :email "mitchard.blimmonsgmail.com"})
+(def order-details-validation
+  {:name
+   ["Please enter a name" not-empty]
+   :email
+   ["Please enter a email address" not-empty
+    "Your email address doesn't look like an email address"
+    #(or (empty? %) (re-seq #"@" %))]})
+(defn error-messages-for
+  "Return a seq of error messages"
+  [to-validate message-validator-pairs]
+  (map first (filter #(not ((second %) to-validate))
+                     (partition 2 message-validator-pairs))))
+(defn validate
+  "Retturns a map with a vector of errors for each key"
+  [to-validate validations]
+  (reduce (fn [errors validation]
+            (let [[fieldname validation-check-group] validation
+                  value (get to-validate fieldname)
+                  error-messages (error-messages-for value validation-check-group)]
+              (if (empty? error-messages)
+                errors
+                (assoc errors fieldname error-messages))))
+          {}
+          validations))
+(validate order-details order-details-validation)
+
+;; 'if-valid' macro
+(defmacro if-valid
+  "Handle validation more concisely"
+  [to-validate validations errors-name & then-else]
+  `(let [~errors-name (validate ~to-validate ~validations)]
+     (if (empty? ~errors-name)
+       ~@then-else)))
+(macroexpand
+ '(if-valid order-details
+    order-details-validation
+    my-error-name
+    (println :success)
+    (println :failure my-error-name)))
+
+(seq '1)
+
+;; Exercises
+;; 1. Write the macro when-valid so that it behaves similary to when. Here is an example of calling it:
+(def order-details-good
+  {:name "mitcard Blimmons"
+   :email "mitchard.blimmons@gmail.com"})
+(def order-details-bad
+  {:name "mitcard Blimmons"
+   :email "mitchard.blimmonsgmail.com"})
+
+(defmacro when-valid
+  [data data-validation & actions]
+  `(if-valid ~data ~data-validation ~'err
+             (do ~@actions)
+             false))
+
+(when-valid order-details-bad order-details-validation
+            (println "It's a success!")
+            (println :success))
+(when-valid order-details-good order-details-validation
+            (println "It's a success!")
+            (println :success))
+(macroexpand
+ '(when-valid order-details-bad order-details-validation
+            (println "It's a success!")
+            (println :success)))
+
+;; 2. You saw that and is implemented as a macro. Implement or as a macro.
+(defmacro example-and
+  {:added "1.0"}
+  ([] true)
+  ([x] x)
+  ([x & next]
+   `(let [and# ~x]
+      (if and# (example-and ~@next) and#))))
+(defmacro example-or
+  {:added "1.0"}
+  ([] true)
+  ([x] x)
+  ([x & next]
+   `(let [or# ~x]
+      (if or# or# (example-or ~@next)))))
+(or 3 0)
+(or 2 3)
+(example-or 3 0)
+(example-or 2 3)
+
