@@ -262,3 +262,28 @@
 (example-or 3 0)
 (example-or 2 3)
 
+;; 3. In Chapter 5 you created a series of functions (c-int, c-str, c-dex) to read an RPG character's attribute. Write a macro that defines an arbitrary number of attribute-retrieving functions usin one macro call. Here's how you would call it:
+(defattrs
+  c-int :intelligence
+  c-str :strength
+  c-dex :dexterity)
+(macroexpand
+ '(defattrs
+  c-int :intelligence
+  c-str :strength
+  c-dex :dexterity))
+(defmacro defattrs
+  [& attributes]
+  `(do
+     ~@(map (fn [[f-name attr-name]]
+              `(def ~f-name (comp ~attr-name :attributes)))
+            (partition 2 attributes))))
+(def character
+  {:name "Smooches McCutes"
+   :attributes {:intelligence 10
+                :strength 4
+                :dexterity 5}})
+(c-int character)
+(c-str character)
+(c-dex character)
+(def c-int (comp :intelligence :attributes))
