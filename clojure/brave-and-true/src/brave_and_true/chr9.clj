@@ -160,39 +160,40 @@
 
 ;; Exercises
 ;; 1. Write a function that takes a string as an argument and searches for it on Bing and Google using the slurp function. Your function should return the HTML of the first page returned by the search.
-;; 2. Update your function so it takes a seocnd argument consisting of the search engines to use
+;; 2. Update your function so it takes a second argument consisting of the search engines to use.
 (def default-search-engines
   ["https://www.google.com/search?q%3D"
    "https://www.bing.com/search?q%3D"])
+
 (defn search
+  "Search and display page source"
   ([query] (search query default-search-engines))
-  ([query search-engine]
-   (let [result-promise (promise)]
-     (doseq [engine search-engine]
-       (future (deliver result-promise
-                        (slurp (str engine query)))))
-     @result-promise)))
-(search "clojure")
-(search "clojure")
+  ([query search-engines]
+   (let [query-promise (promise)]
+     (doseq [search-engine search-engines]
+       (future
+         (deliver query-promise
+                  (slurp
+                   (str search-engine query)))))
+     @query-promise)))
+(search "rocky")
 
-;; 3. Create a new function that takes a search term and search engines as arguments, adn returns a vector of the URLs. fomr the first pages of search result from each search engine
-(defn get-urls
+;; 3. Create a new function that takes a search term and search engines as arguments, and returns a vector of the URLs from the first page of search results from each search engine.
+(defn show-urls
   [source]
-  (re-seq #"https?://[^\"]*" source))
-(defn promised-request
-  [query search-engines]
-  (let [request-promise (promise)]
-    (doseq [engine search-engines]
-      (future (deliver request-promise
-                       (slurp (str engine query)))))
+  (re-seq #"https://[^\"]*" source))
+(defn promise-request
+  [query search-engine]
+  (let [url (str search-engine query)
+        request-promise (promise)]
+    (future (deliver request-promise
+                     (slurp url)))
     request-promise))
-
-(deref (promised-request "clojure" default-search-engines))
-
-(defn search
-  [query search-engines]
+(defn search-urls
+  "Returns urls of the search term"
+  [query]
   (vec (flatten
-        (map #(get-urls (deref %))
-             (map #(promised-request query %)
-                  search-engines)))))
-(search "clojure" default-search-engines)
+        (map #(show-urls (deref %))
+             (map #(promise-request query %)
+                  default-search-engines)))))
+(search-urls "rocky")
