@@ -1,4 +1,4 @@
-(ns brave-and-true.chr8)
+(ns brave-and-true.chr08)
 
 ;; Writing macros
 (macroexpand '(when boolean-expression

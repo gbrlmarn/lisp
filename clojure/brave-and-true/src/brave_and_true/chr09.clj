@@ -1,4 +1,4 @@
-(ns brave-and-true.chr9)
+(ns brave-and-true.chr09)
 
 ;; The sacred art of concurrent and parallel programming
 
