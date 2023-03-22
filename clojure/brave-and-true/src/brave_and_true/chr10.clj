@@ -62,3 +62,39 @@
               :percent-deteriorated 0})
 
 ;; Watches and Validators
+;; A watch is a function that takes four arguments: a key, the reference being watched, its previous state, and its new value.
+(defn shuffle-speed
+  [zombie]
+  (* (:cuddle-hunger-level zombie)
+     (- 100 (:percent-deteriorated zombie))))
+
+(defn shuffle-alert
+  [key watched old-state new-state]
+  (let [sph (shuffle-speed new-state)]
+    (if (> sph 5000)
+      (do
+        (println "Run, you fool!")
+        (println "The zombie's SPH is now " sph)
+        (println "This message brought to you courtesy of " key))
+      (do
+        (println "All's well with " key)
+        (println "Cuddle hunger: " (:cuddle-hunger-level new-state))
+        (println "Percent deteriorated: "
+                 (:percent-deteriorated new-state))
+        (println "SPH: " sph)))))
+
+;; (add-watch ref key watch-fn)
+(reset! fred {:cuddle-hunger-level 22
+              :percent-deteriorated 2})
+(add-watch fred :fred-shuffle-alert shuffle-alert)
+(swap! fred update-in [:percent-deteriorated] + 1)
+(swap! fred update-in [:cuddle-hunger-level] + 30)
+
+
+
+
+
+
+
+
+
