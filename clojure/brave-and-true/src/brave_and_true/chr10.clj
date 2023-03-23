@@ -90,11 +90,91 @@
 (swap! fred update-in [:percent-deteriorated] + 1)
 (swap! fred update-in [:cuddle-hunger-level] + 30)
 
+;; Validators
+;; They let you specifify what states are allowable for a reference. For example, here's a validator that you could use to ensure that a zombie's :percen-deteriorated is between 0 to 100
+(defn percent-deteriorated-validator
+  [{:keys [percent-deteriorated]}]
+  (and (>= percent-deteriorated 0)
+       (<= percent-deteriorated 100)))
 
+;; Validator takes only one argument. A reference that contains a validator can be change only if the validator returns true for the new value.
+;; A validator can be attached during atom creation:
+(def bobby
+  (atom
+   {:cuddle-hunger-level 0
+    :percent-deteriorated 0}
+   :validator percent-deteriorated-validator))
+(swap! bobby update-in [:percent-deteriorated] + 200)
+;; Also a messages can be set if the validator returns false.
+(defn percent-deteriorated-validator
+  [{:keys [percent-deteriorated]}]
+  (or (and (>= percent-deteriorated 0)
+           (<= percent-deteriorated 100))
+      (throw (IllegalStateException. "That's not mathy!"))))
+(def bobby
+  (atom
+   {:cuddle-hunger-level 0
+    :percent-deteriorated 0}
+   :validator percent-deteriorated-validator))
+(swap! bobby update-in [:percent-deteriorated] + 200)
 
+;; Atoms are ideal for managing independent identities. For updating the state of more than one identity simultaneously 'refs' are used
+(def sock-varieties
+  #{"darned" "argyle" "wool" "horsehair"
+    "mulleted" "passive-aggresive" "striped"
+    "polka-dotted" "athletic" "business"
+    "power" "invisibile" "gollumed"})
 
+(defn sock-count
+  [sock-variety count]
+  {:variety sock-variety
+   :count count})
 
+(defn generate-sock-gnome
+  "Createa an initial sock gnome state with no socks"
+  [name]
+  {:name name
+   :socks #{}})
 
+;; The gnome will have 0 socks and the dryers will have the rest of generated socks.
+(def sock-gnome
+  (ref (generate-sock-gnome "Barumpharumph")))
+(def dryer
+  (ref {:name "LG 1337"
+        :socks (set (map #(sock-count % 2)
+                         sock-varieties))}))
+(:socks @dryer)
 
+;; Define the transfer of socks from the dryer to gnome using alter.
+(defn steal-sock
+  [gnome dryer]
+  (dosync
+   (when-let [pair (some #(if (= (:count %) 2) %)
+                         (:socks @dryer))]
+     (let [updated-count
+           (sock-count (:variety pair) 1)]
+       (alter gnome update-in [:socks]
+              conj updated-count)
+       (alter dryer update-in [:socks]
+              disj pair)
+       (alter dryer update-in [:socks]
+              conj updated-count)))))
+(steal-sock sock-gnome dryer)
 
+;; Find similar socks from gnome and dryer
+(defn similar-socks
+  [target-sock sock-set]
+  (filter #(= (:variety %) (:variety target-sock)) sock-set))
+(similar-socks (first (:socks @sock-gnome)) (:socks @dryer))
 
+;; When a ref is altered the value isn't changed immediately
+(def counter (ref 0))
+(future
+  (dosync
+   (alter counter inc)
+   (println @counter)
+   (Thread/sleep 500)
+   (alter counter inc)
+   (println @counter)))
+(Thread/sleep 250)
+(println @counter)
