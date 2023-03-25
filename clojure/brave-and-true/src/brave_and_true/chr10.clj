@@ -178,3 +178,127 @@
    (println @counter)))
 (Thread/sleep 250)
 (println @counter)
+
+;; commute
+;; allows to update a ref's state withing a transaction, just like alter but its behavior at commit time is completely different. Commute doesn't force transaction retry.
+;; safe commuting
+(defn sleep-print-update
+  [sleep-time thread-name update-fn]
+  (fn [state]
+    (Thread/sleep sleep-time)
+    (println (str thread-name ": " state))
+    (update-fn state)))
+(def counter (ref 0))
+(future (dosync (commute counter
+                         (sleep-print-update
+                          10 "Thread A" inc))))
+(future (dosync (commute counter
+                         (sleep-print-update
+                          150 "Thread B" inc))))
+@counter
+
+;; unsafe commuting
+(def receiver-a (ref #{}))
+(def receiver-b (ref #{}))
+(def giver (ref #{1}))
+(do (future (dosync
+             (let [gift (first @giver)]
+               (Thread/sleep 10)
+               (commute receiver-a conj gift)
+               (commute giver disj gift))))
+    (future (dosync
+             (let [gift (first @giver)]
+               (Thread/sleep 50)
+               (commute receiver-b conj gift)
+               (commute giver disj gift)))))
+@receiver-a
+@receiver-b
+@giver
+
+;; Dynamic Binding
+(def ^:dynamic *notification-address* "dobby@elf.org")
+;; The value can be changes temporarly by using binding
+(binding [*notification-address* "test@elf.org"]
+  *notification-address*)
+*notification-address*
+
+;; Bindings cand be stacked just as let
+(binding [*notification-address* "tester-1@elf.org"]
+  (println *notification-address*)
+  (binding [*notification-address* "tester-2@elf.org"]
+    (println *notification-address*))
+  (println *notification-address*))
+
+;; Dynamic Var Uses
+(defn notify
+  [message]
+  (str "TO: " *notification-address* "\n"
+       "MESSAGE: " message))
+(notify "I fell.")
+
+;; The function can be tested without spamming little dobby
+(binding [*notification-address* "test@elf.org"]
+  (notify "I feel."))
+;; Why not define notification address at input and why use dynamic binding instead. Dynamic bindings are used to name a resource that is accessed by more functions. Clojure comes with a ton of built-in dynamics vars like *out*(standard output)
+(binding [*out* (clojure.java.io/writer "print-output")]
+  (println "A man who carries a cat by the tail learns somethings he can lean in no other way.
+-- Mark Twain"))
+(slurp "print-output")
+
+;; Dynamic vars ar also good for configuration. For example the *print-length* allows to specify the number of elements println should print from a collection
+(println ["Print" "all" "the" "things!"])
+(binding [*print-length* 1]
+  (println ["Print" "just" "one"]))
+
+;; Conccurrency and Parallelism with pmap
+;; each applicatoin of a function over an element using is done in a separate thread whe using pmap
+(defn always-1 [] 1)
+(take 5 (repeatedly always-1))
+(take 5 (repeatedly (partial rand-int 10)))
+
+;; Generate a sequence of 3000 random string each 7000 characters long. We'll compare 'map' and 'pmap' on this sequence
+(def alphabet-length 26)
+
+;; Vector of chars, A-Z0vtl
+(def letters
+  (mapv (comp str char (partial + 65))
+        (range alphabet-length)))
+letters
+
+;; Return of random string of length
+(defn random-string
+  [length]
+  (apply str
+         (take length
+               (repeatedly #(rand-nth letters)))))
+(random-string 3)
+
+(defn random-string-list
+  [list-length string-length]
+  (take list-length
+        (repeatedly #(random-string string-length))))
+(defn random-string-list
+  [list-length string-length]
+  (doall
+   (take list-length
+         (repeatedly (partial random-string
+                              string-length)))))
+(random-string-list 5 3)
+
+(def orc-names (random-string-list 3000 7000))
+
+;; dorun realizes the sequence but returns nil
+(time (dorun (map clojure.string/lower-case orc-names)))
+(time (dorun (pmap clojure.string/lower-case orc-names)))
+
+;; the paralization of function application has a time overhead. If we generate more words but shorter, the serial version 'map' will be faster than 'pmap'
+(def orc-names-abbrevs (random-string-list 20000 300))
+(time (dorun (map clojure.string/lower-case orc-names-abbrevs)))
+(time (dorun (pmap clojure.string/lower-case orc-names-abbrevs)))
+
+;; The solution is to increase the ammount of work that is done by each thread. Instead of applying the function on one element per thread, we can have a thread apply the functoin on 2 or 3 elements, etc...
+;; We use partitioning to divide our collection
+(def numbers [1 2 3 4 5 6 7 8 9 10])
+(partition-all 3 numbers)
+;; and concat to restore the initial collection
+
