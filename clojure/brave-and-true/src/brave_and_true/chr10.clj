@@ -1,4 +1,5 @@
-(ns brave-and-true.chr10)
+(ns brave-and-true.chr10
+  (:require [clojure.string :as str]))
 
 ;; Clojure Metaphysics: Atoms, Refs, Vars, and Cuddble Zombies
 
@@ -301,4 +302,81 @@ letters
 (def numbers [1 2 3 4 5 6 7 8 9 10])
 (partition-all 3 numbers)
 ;; and concat to restore the initial collection
+(apply concat (partition-all 3 numbers))
+
+;; Partitioning to apply pmap over more than one elem per thread of execution
+(apply concat
+       (pmap (fn [number-group]
+               (doall (map inc number-group)))
+             (partition-all 3 numbers)))
+
+;; Using this technique we can chose to execute 1000 words per thread
+(time (dorun
+       (apply concat
+              (pmap
+               (fn [name]
+                 (doall (map clojure.string/lower-case
+                             name)))
+               (partition-all 1000 orc-names-abbrevs)))))
+
+;; We can define a general function called ppmap
+(defn ppmap
+  "Partitioned pmap, for grouping map ops together to make parallel overhead worthwhile"
+  [grain-size f & colls]
+  (apply concat
+         (apply pmap
+                (fn [& pgroups]
+                  (doall (apply map f pgroups)))
+                (map (partial partition-all grain-size)
+                     colls))))
+(time (dorun (ppmap 1000
+                    clojure.string/lower-case
+                    orc-names-abbrevs)))
+
+;; Exercises
+;; 1. Create an atom with the initial value 0, use swap! to increment it a couple of times, and the dereference it.
+(def counter (atom 0))
+(dotimes [_ 3] (swap! counter inc))
+@counter
+
+;; Create a function that uses futures to parallelize the task of downloading
+(defn quote-word-count
+  [n]
+  (let [state (atom {})
+        promises
+        (map
+         (fn [_]
+           (future
+             (let [quote (slurp "http://www.braveclojure.com/random-quote")
+                    curr-state @state]
+               (let [new-state
+                     (reduce
+                      (fn [word-map word]
+                        (assoc word-map
+                               word
+                               (inc (get word-map word 0))))
+                      curr-state
+                      (str/split quote #" "))]
+                 (reset! state new-state)))))
+         (range n))]
+    (doseq [p promises] @p)
+    @state))
+(quote-word-count 5)
+
+;; 3. Create representation of two characters in a game. The first character has 15 hit points of a total of 40. The seocond character has a healing potion in his inventory. Use refs and transactions to model the consumation of the healing potion and the first character healing.
+(def warrior (ref {:name "Luke" :health 15}))
+(def doctor (ref {:health-potions 1}))
+(def MAX-HEALTH 40)
+
+(defn heal
+  [doctor warrior]
+  (dosync
+   (alter doctor update-in [:health-potions] dec)
+   (alter warrior assoc-in [:health] MAX-HEALTH )))
+
+(heal doctor warrior)
+@warrior
+@doctor
+
+
 
