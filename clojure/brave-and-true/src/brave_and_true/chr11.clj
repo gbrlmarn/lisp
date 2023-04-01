@@ -142,7 +142,7 @@
   "Retrive random quote and format it"
   []
   (format-quote
-   (slurp "https://www.braveclojure.com/random-quote" )))
+   (slurp "http://www.braveclojure.com/random-quote")))
 
 (defn snag-quotes
   [filename num-quotes]
@@ -152,3 +152,33 @@
         (append-to-file filename (<! c))))
     (dotimes [n num-quotes]
       (go (>! c (random-quote))))))
+
+(snag-quotes "quotes" 2)
+
+(defn upper-caser
+  [in]
+  (let [out (chan)]
+    (go (while true
+          (>! out (clojure.string/upper-case
+                   (<! in)))))
+    out))
+
+(defn reverser
+  [in]
+  (let [out (chan)]
+    (go (while true
+          (>! out (clojure.string/reverse
+                   (<! in)))))
+    out))
+
+(defn printer
+  [in]
+  (go (while true (println (<! in)))))
+
+(def in-chan (chan))
+(def upper-caser-out (upper-caser in-chan))
+(def reverser-out (reverser upper-caser-out))
+(printer reverser-out)
+
+(>!! in-chan "redrum")
+(>!! in-chan "repaid")
