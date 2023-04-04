@@ -28,3 +28,13 @@
 (Date.)
 
 ;; The System Class
+(System/getenv)
+(System/getProperty "user.dir")
+(System/getProperty "java.version")
+
+;; The Date Class
+(java.util.Date.)
+(.toString (java.util.Date.))
+
+
+;; Input/Output
