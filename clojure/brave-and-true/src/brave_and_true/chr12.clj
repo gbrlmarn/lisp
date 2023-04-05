@@ -38,3 +38,27 @@
 
 
 ;; Input/Output
+(let [file (java.io.File. "/")]
+  (println (.exists file))
+  (println (.canWrite file))
+  (println (.getPath file)))
+
+(spit "/tmp/groceries"
+      "- Pasta
+- Tomatoes")
+(slurp "/tmp/groceries")
+
+(let [s (java.io.StringWriter.)]
+  (spit s "capture this")
+  (.toString s))
+
+(let [s (java.io.StringReader.
+         "- something that is captured")]
+  (slurp s))
+
+(with-open [todo-list
+            (clojure.java.io/reader
+             "/tmp/groceries")]
+  (first (line-seq todo-list)))
+
+
