@@ -13,18 +13,65 @@
 ;; (ns were-creatures)
 (ns were-creatures)
 (defmulti full-moon-behavior
-  (fn [were-creature] (:were-type were-creature)))
+  (fn [were-creature]
+    (:were-type were-creature)))
 (defmethod full-moon-behavior :wolf
   [were-creature]
-  (str (:name were-creature) " will howl and murder"))
+  (str (:name were-creature)
+       " will howl and murder"))
+
 (defmethod full-moon-behavior :human
   [were-creature]
-  (str (:name were-creature) " will save other humans"))
+  (str (:name were-creature)
+       " will save other humans"))
+
+(defmethod full-moon-behavior nil
+  [were-creature]
+  (str (:name were-creature)
+       " will do nothing..."))
+
+(defmethod full-moon-behavior :default
+  [were-creature]
+  (str (:name were-creature)
+       " will do what is needed"))
 
 (full-moon-behavior {:were-type :human
                      :name "Jimmy"})
 (full-moon-behavior {:were-type :wolf
                      :name "Jonny"})
+(full-moon-behavior {:were-type nil
+                     :name "Nobody"})
+(full-moon-behavior {:were-type :engineer
+                     :name "Gabriel"})
+
+;; Use method in another namespace and extend it
+(ns random-namespace
+  (:require [were-creatures]))
+(defmethod
+  were-creatures/full-moon-behavior :vampire
+  [were-creature]
+  (str (:name were-creature)
+       " will steal your blood"))
+(were-creatures/full-moon-behavior
+ {:were-type :vampire
+  :name "Merlin"})
+
+;; Multimethod that takes two inputs
+(ns user)
+(defmulti types
+  (fn [x y] [(class x) (class y)]))
+(defmethod types
+  [java.lang.String java.lang.String]
+  [x y]
+  "Two strings!")
+
+(defmethod types
+  [java.lang.Long java.lang.Long]
+  [x y]
+  "Two numbers...")
+
+(types "String 1" "String 2")
+(types 2 3)
 
 
 
