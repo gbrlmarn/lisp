@@ -1,0 +1,8 @@
+(print-this "-s" "Mikitauru")
+(print-this :something "Mikitauru")
+(print-this :pluralize true :something "Mikitauru")
+(exit)
+(boot (specify-this :something "mikytauru" :pluralize true) (print-this))
+(quit)
+(boot (specify-this :something "Mikytauru" :pluralize true) (print-this))
+(quit)
