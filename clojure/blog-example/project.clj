@@ -6,7 +6,8 @@
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [stasis "2.5.1"]
                  [ring "1.10.0"]
-                 [hiccup "1.0.5"]]
+                 [hiccup "1.0.5"]
+                 [markdown-clj "1.11.4"]]
   :ring {:handler blog-example.web/app}
   :profiles {:dev {:plugins [[lein-ring "0.12.6"]]}}
   :repl-options {:init-ns blog-example.core})
