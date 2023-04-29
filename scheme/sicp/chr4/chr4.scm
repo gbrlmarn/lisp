@@ -798,11 +798,4 @@
 ;; 4.2.1 Normal Order and Applicative Order
 ;; Scheme is an applicative-order language, namely, that all arguments to Scheme procedures are evaluated when the procedure is applied. In contrast, normal-order languages delay evaluation of procedure until the actual arguments values are needed. Delaying evaluation of procedure arguments until the last possible moment is called lazy evaluation.
 (define (try a b) (if (= a 0) 1 b))
-(try 0 (/ 1 0))
-
-(define (fact x)
-  (unless (= x 1)
-    (* x (fact (- x 1)))
-    1))
-(fact 5)
-
+(try 0 (/ 1 0)) ;; this doesn't work
